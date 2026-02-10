@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Chord, CHORD_TYPES } from '../constants/musicData';
+import { ProgressionChord, CHORD_TYPES } from '../constants/musicData';
 import MiniFretboard from './MiniFretboard';
-import { getChordVoicing } from '../lib/musicTheory';
+import { getAllChordVoicings } from '../lib/musicTheory';
 import { playProgression, stopPlayback } from '../lib/audioEngine';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
@@ -10,12 +10,13 @@ import { TrashIcon } from './icons/TrashIcon';
 import { XIcon } from './icons/XIcon';
 
 interface ProgressionBuilderProps {
-  progression: Chord[];
+  progression: ProgressionChord[];
   onClear: () => void;
   onRemove: (index: number) => void;
+  onUpdateVoicing: (index: number, voicingIndex: number) => void;
 }
 
-const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, onClear, onRemove }) => {
+const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, onClear, onRemove, onUpdateVoicing }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
 
@@ -82,7 +83,12 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
       <div className="mx-4 h-12 w-px bg-[#30363d]"></div>
       <div className="flex-1 flex items-center space-x-2 overflow-x-auto">
         {progression.map((chord, index) => (
-          <ProgressionChordBlock key={index} chord={chord} onRemove={() => onRemove(index)} />
+          <ProgressionChordBlock
+            key={index}
+            chord={chord}
+            onRemove={() => onRemove(index)}
+            onUpdateVoicing={(voicingIndex) => onUpdateVoicing(index, voicingIndex)}
+          />
         ))}
         {progression.length === 0 && (
           <div className="text-[#8b949e]">Add chords from the right panel to build a progression.</div>
@@ -93,19 +99,61 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
 };
 
 interface ProgressionChordBlockProps {
-    chord: Chord;
+    chord: ProgressionChord;
     onRemove: () => void;
+    onUpdateVoicing: (voicingIndex: number) => void;
 }
 
-const ProgressionChordBlock: React.FC<ProgressionChordBlockProps> = ({ chord, onRemove }) => {
-    const voicing = getChordVoicing(chord.root, chord.type);
+const ProgressionChordBlock: React.FC<ProgressionChordBlockProps> = ({ chord, onRemove, onUpdateVoicing }) => {
+    const [showVoicings, setShowVoicings] = useState(false);
+    const allVoicings = getAllChordVoicings(chord.root, chord.type);
+    const currentVoicing = allVoicings[chord.voicingIndex] || allVoicings[0];
+
     return (
-        <div className="group relative flex-shrink-0 flex items-center space-x-2 bg-[#0d1117] border border-[#30363d] rounded-lg p-2 h-16">
-            <MiniFretboard voicing={voicing} />
-            <span className="font-mono font-bold">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
-            <button onClick={onRemove} className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        <div
+            className="group relative flex-shrink-0 flex items-center space-x-2 bg-[#0d1117] border border-[#30363d] rounded-lg p-2 h-16 cursor-pointer hover:border-[#4493f8] transition-colors"
+            onClick={() => setShowVoicings(!showVoicings)}
+        >
+            <MiniFretboard voicing={currentVoicing?.voicing || []} />
+            <div className="flex flex-col">
+                <span className="font-mono font-bold">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
+                {allVoicings.length > 1 && (
+                    <span className="text-[10px] text-[#8b949e] font-mono">{currentVoicing?.name}</span>
+                )}
+            </div>
+            <button
+                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
                 <XIcon />
             </button>
+
+            {showVoicings && allVoicings.length > 1 && (
+                <div
+                    className="absolute bottom-full left-0 mb-2 bg-[#161b22] border border-[#30363d] rounded-lg p-2 shadow-lg z-50 min-w-[120px]"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="text-xs text-[#8b949e] mb-1 font-mono">Voicing:</div>
+                    <div className="flex flex-col gap-1">
+                        {allVoicings.map((voicing, index) => (
+                            <button
+                                key={index}
+                                onClick={() => { onUpdateVoicing(index); setShowVoicings(false); }}
+                                className={`px-2 py-1 text-xs font-mono rounded transition-colors text-left ${
+                                    chord.voicingIndex === index
+                                        ? 'bg-[#238636] text-white'
+                                        : 'bg-[#21262d] text-[#c9d1d9] hover:bg-[#30363d]'
+                                }`}
+                            >
+                                {voicing.name}
+                                {voicing.startFret > 0 && (
+                                    <span className="ml-1 opacity-70">({voicing.startFret}fr)</span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

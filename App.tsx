@@ -7,7 +7,7 @@ import RelativeChords from './components/RelativeChords';
 import ProgressionBuilder from './components/ProgressionBuilder';
 import CircleOfFifths from './components/CircleOfFifths';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
-import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord } from './constants/musicData';
+import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
 
 const App: React.FC = () => {
   const [rootNote, setRootNote] = useState<Note>('A');
@@ -15,12 +15,7 @@ const App: React.FC = () => {
   const [hoveredChord, setHoveredChord] = useState<AppChord | null>(null);
   const [showCircleOfFifths, setShowCircleOfFifths] = useState(false);
   const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(0);
-  const [progression, setProgression] = useState<AppChord[]>([
-    { root: 'A', type: 'minor' },
-    { root: 'F', type: 'Major' },
-    { root: 'C', type: 'Major' },
-    { root: 'G', type: 'Major' },
-  ]);
+  const [progression, setProgression] = useState<ProgressionChord[]>([]);
 
   const selectedChord = useMemo(() => ({ root: rootNote, type: chordType }), [rootNote, chordType]);
   const chordNotes = useMemo(() => getChordNotes(rootNote, chordType), [rootNote, chordType]);
@@ -42,12 +37,35 @@ const App: React.FC = () => {
 
   const handleAddChordToProgression = (chord: AppChord) => {
     if (progression.length < 8) {
-      setProgression([...progression, chord]);
+      // Add chord with current voicing index (or 0 if not the selected chord)
+      const voicingIdx = (chord.root === rootNote && chord.type === chordType)
+        ? currentVoicingIndex
+        : 0;
+      setProgression([...progression, { ...chord, voicingIndex: voicingIdx }]);
     }
+  };
+
+  const handleUpdateProgressionVoicing = (index: number, voicingIndex: number) => {
+    setProgression(progression.map((chord, i) =>
+      i === index ? { ...chord, voicingIndex } : chord
+    ));
   };
 
   const handleClearProgression = () => {
     setProgression([]);
+  };
+
+  const handleChordTypeChange = (newType: ChordType) => {
+    const currentVoicingName = currentVoicing?.name;
+    const newVoicings = getAllChordVoicings(rootNote, newType);
+
+    // Try to find a voicing with the same name
+    const matchingIndex = currentVoicingName
+      ? newVoicings.findIndex(v => v.name === currentVoicingName)
+      : -1;
+
+    setChordType(newType);
+    setSelectedVoicingIndex(matchingIndex >= 0 ? matchingIndex : 0);
   };
 
   const handleSelectChord = (root: Note, type: ChordType) => {
@@ -94,12 +112,12 @@ const App: React.FC = () => {
         </button>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[200px] flex-shrink-0 bg-[#161b22] border-r border-[#30363d] p-4 overflow-y-auto">
+        <aside className="w-[240px] flex-shrink-0 bg-[#161b22] border-r border-[#30363d] p-4 overflow-y-auto">
           <ChordSelector
             selectedRoot={rootNote}
             selectedType={chordType}
             onRootChange={(root) => { setRootNote(root); setSelectedVoicingIndex(0); }}
-            onTypeChange={(type) => { setChordType(type); setSelectedVoicingIndex(0); }}
+            onTypeChange={handleChordTypeChange}
           />
         </aside>
         <main className="flex-1 flex flex-col p-4 overflow-y-auto pb-28">
@@ -147,6 +165,7 @@ const App: React.FC = () => {
         progression={progression}
         onClear={handleClearProgression}
         onRemove={(index) => setProgression(progression.filter((_, i) => i !== index))}
+        onUpdateVoicing={handleUpdateProgressionVoicing}
       />
       {showCircleOfFifths && (
         <CircleOfFifths

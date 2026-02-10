@@ -27,6 +27,10 @@ export interface Chord {
   type: ChordType;
 }
 
+export interface ProgressionChord extends Chord {
+  voicingIndex: number;
+}
+
 export type Interval = 'Root' | 'Minor 3rd' | 'Major 3rd' | 'Perfect 5th' | 'Diminished 5th' | 'Augmented 5th' | 'Minor 7th' | 'Major 7th';
 
 export interface NoteWithInterval {
@@ -55,7 +59,7 @@ export interface VoicingDefinition {
 // fret: -1 means muted/not played.
 export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
   'C_Major': [
-    { name: 'Open', frets: [-1, 0, 1, 0, 2, 3], startFret: 0 },
+    { name: 'Open', frets: [0, 1, 0, 2, 3, -1], startFret: 0 },
     { name: 'Barre 3rd', frets: [3, 5, 5, 5, 3, -1], startFret: 3 },
     { name: 'Barre 8th', frets: [8, 8, 9, 10, 10, 8], startFret: 8 },
   ],
@@ -82,6 +86,26 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
   'F_Major': [
     { name: 'Barre 1st', frets: [1, 1, 2, 3, 3, 1], startFret: 1 },
     { name: 'Barre 8th', frets: [-1, 10, 10, 10, 8, -1], startFret: 8 },
+  ],
+  'F#_Major': [
+    { name: 'Barre 2nd', frets: [2, 2, 3, 4, 4, 2], startFret: 2 },
+    { name: 'Barre 9th', frets: [-1, 11, 11, 11, 9, -1], startFret: 9 },
+  ],
+  'G#_Major': [
+    { name: 'Barre 4th', frets: [4, 4, 5, 6, 6, 4], startFret: 4 },
+    { name: 'Barre 11th', frets: [-1, 13, 13, 13, 11, -1], startFret: 11 },
+  ],
+  'A#_Major': [
+    { name: 'Barre 1st', frets: [1, 3, 3, 3, 1, -1], startFret: 1 },
+    { name: 'Barre 6th', frets: [6, 6, 7, 8, 8, 6], startFret: 6 },
+  ],
+  'B_Major': [
+    { name: 'Barre 2nd', frets: [2, 4, 4, 4, 2, -1], startFret: 2 },
+    { name: 'Barre 7th', frets: [7, 7, 8, 9, 9, 7], startFret: 7 },
+  ],
+  'D#_Major': [
+    { name: 'Barre 6th', frets: [6, 8, 8, 8, 6, -1], startFret: 6 },
+    { name: 'Barre 11th', frets: [11, 11, 12, 13, 13, 11], startFret: 11 },
   ],
   'A_minor': [
     { name: 'Open', frets: [0, 1, 2, 2, 0, -1], startFret: 0 },
@@ -115,7 +139,7 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 7th', frets: [7, 7, 7, 9, 9, 7], startFret: 7 },
   ],
   'C_7': [
-    { name: 'Open', frets: [-1, 0, 1, 3, 2, 3], startFret: 0 },
+    { name: 'Open', frets: [0, 1, 3, 2, 3, -1], startFret: 0 },
     { name: 'Barre 3rd', frets: [3, 5, 3, 5, 3, -1], startFret: 3 },
     { name: 'Barre 8th', frets: [8, 8, 9, 8, 10, 8], startFret: 8 },
   ],
@@ -140,7 +164,7 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 12th', frets: [12, 12, 13, 12, 14, 12], startFret: 12 },
   ],
   'B_dim': [
-    { name: 'Open', frets: [-1, 3, 1, 3, 2, -1], startFret: 0 },
+    { name: 'Open', frets: [-1, 3, 4, 3, 2, -1], startFret: 0 },
     { name: 'Barre 7th', frets: [7, 8, 7, 8, -1, -1], startFret: 7 },
   ],
   'F#_minor': [
@@ -313,7 +337,7 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 10th', frets: [10, 12, 10, 12, 11, -1], startFret: 10 },
   ],
   'A_dim': [
-    { name: 'Open', frets: [-1, 1, 2, 1, 2, 0], startFret: 0 },
+    { name: 'Open', frets: [-1, 1, 2, 1, 0, -1], startFret: 0 },
     { name: 'Barre 5th', frets: [-1, 7, 5, 7, 6, 5], startFret: 5 },
     { name: 'Barre 11th', frets: [11, 13, 11, 13, 12, -1], startFret: 11 },
   ],
@@ -363,7 +387,7 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 10th', frets: [10, 12, 10, 12, 11, -1], startFret: 10 },
   ],
   'A_dim7': [
-    { name: 'Open', frets: [-1, 1, 2, 1, 2, -1], startFret: 0 },
+    { name: 'Open', frets: [-1, 1, 2, 1, 0, -1], startFret: 0 },
     { name: 'Barre 5th', frets: [5, 7, 5, 7, 6, 5], startFret: 5 },
     { name: 'Barre 11th', frets: [11, 13, 11, 13, 12, -1], startFret: 11 },
   ],
@@ -408,7 +432,7 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 6th', frets: [6, 7, 7, 8, 9, -1], startFret: 6 },
   ],
   'G_aug': [
-    { name: 'Open', frets: [3, 0, 0, 0, 2, 3], startFret: 0 },
+    { name: 'Open', frets: [3, 0, 0, 1, 2, 3], startFret: 0 },
     { name: 'Barre 3rd', frets: [3, 3, 4, 5, 5, -1], startFret: 3 },
     { name: 'Barre 7th', frets: [7, 8, 8, 9, 10, -1], startFret: 7 },
   ],
