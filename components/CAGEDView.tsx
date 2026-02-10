@@ -87,7 +87,15 @@ const MiniCAGEDFretboard: React.FC<{
           if (relativeFret < 0 || relativeFret >= fretCount) return null;
 
           const x = ((5 - pos.string) / 5) * 100;
-          const y = relativeFret === 0 ? 10 : relativeFret * 20 + 10;
+          // Position notes correctly:
+          // - Nut notes (pos.fret === 0): at very top (5%)
+          // - For shapes starting at fret 0: shift up by 1 slot since nut takes the first visual slot
+          // - For other shapes: use normal fret positioning
+          const y = pos.fret === 0
+            ? 5
+            : startFret === 0
+              ? (relativeFret - 1) * 20 + 10
+              : relativeFret * 20 + 10;
 
           return (
             <div
@@ -105,7 +113,8 @@ const MiniCAGEDFretboard: React.FC<{
         {/* Muted strings (X) */}
         {shape.pattern.map((fret, stringIdx) => {
           if (fret !== -1) return null;
-          const x = (stringIdx / 5) * 100;
+          // Use same mapping as notes: (5 - stringIdx) so low E is on left
+          const x = ((5 - stringIdx) / 5) * 100;
           return (
             <div
               key={`mute-${stringIdx}`}
@@ -151,7 +160,7 @@ const FullFretboardView: React.FC<{
         />
       ))}
 
-      {/* String lines */}
+      {/* String lines - top is high E (thin), bottom is low E (thick) */}
       {[0, 1, 2, 3, 4, 5].map(string => (
         <div
           key={string}
@@ -196,15 +205,15 @@ const FullFretboardView: React.FC<{
               onClick={() => onSelectShape(shape)}
               className={`absolute top-1 rounded transition-all ${
                 isSelected
-                  ? 'bg-opacity-15 border-2'
-                  : 'bg-opacity-5 border hover:bg-opacity-10'
+                  ? 'border-2'
+                  : 'border hover:border-2'
               }`}
               style={{
                 left: `${(startFret / maxFret) * 100}%`,
                 width: `${((endFret - startFret) / maxFret) * 100}%`,
                 height: 'calc(100% - 28px)',
                 borderColor: shape.color,
-                backgroundColor: shape.color,
+                backgroundColor: 'transparent',
               }}
             >
               {/* Shape label */}
@@ -218,9 +227,10 @@ const FullFretboardView: React.FC<{
 
             {/* Notes for this shape */}
             {voicing.map((pos, idx) => {
-              const fretPos = pos.fret === 0 ? 0.3 : pos.fret - 0.5;
-              const x = (fretPos / maxFret) * 100;
-              const y = topPadding + (5 - pos.string) * stringSpacing;
+              // Fret 0 notes should be right at the nut (1%), other frets centered in their space
+              const x = pos.fret === 0 ? 1 : ((pos.fret - 0.5) / maxFret) * 100;
+              // String order: high E (pos.string=0) at top, low E (pos.string=5) at bottom
+              const y = topPadding + pos.string * stringSpacing;
 
               return (
                 <div

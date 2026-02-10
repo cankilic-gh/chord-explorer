@@ -62,8 +62,8 @@ const MINOR_PATTERNS: Record<CAGEDShape['name'], { pattern: number[]; rootString
     rootOffset: 0,
   },
   'G': {
-    // Gm shape (barre based)
-    pattern: [3, 0, 0, 0, 1, 3],
+    // Gm shape (barre based) - B string plays 5th since minor 3rd is below open B
+    pattern: [3, 3, 0, 0, 1, 3],
     rootString: 5,
     rootOffset: 3,
   },

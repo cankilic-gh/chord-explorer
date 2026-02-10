@@ -78,7 +78,7 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => 
                 return (
                     <div
                         key={i}
-                        className="absolute w-4 h-4 md:w-6 md:h-6 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg flex items-center justify-center border-2"
+                        className="absolute w-4 h-4 md:w-5 md:h-5 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg flex items-center justify-center border-2"
                         style={{
                             top,
                             left,
