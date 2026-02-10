@@ -20,9 +20,7 @@ const PIANO_KEYS = [
   { note: 'F#', type: 'black', octave: 5 }, { note: 'G', type: 'white', octave: 5 },
   { note: 'G#', type: 'black', octave: 5 }, { note: 'A', type: 'white', octave: 5 },
   { note: 'A#', type: 'black', octave: 5 }, { note: 'B', type: 'white', octave: 5 },
-  { note: 'C', type: 'white', octave: 6 }, { note: 'D', type: 'white', octave: 6 }, 
-  { note: 'E', type: 'white', octave: 6 }, { note: 'F', type: 'white', octave: 6 },
-  { note: 'G', type: 'white', octave: 6 },
+  { note: 'C', type: 'white', octave: 6 },
 ];
 
 const INTERVAL_COLORS: Record<string, string> = {
