@@ -47,20 +47,20 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
   };
 
   return (
-    <div className="relative w-full h-40 bg-[#161b22] border border-[#30363d] rounded-lg p-4 select-none">
-      <div className="relative h-full flex">
+    <div className="relative w-full h-28 md:h-40 bg-[#161b22] border border-[#30363d] rounded-lg p-2 md:p-4 select-none overflow-x-auto">
+      <div className="relative h-full flex min-w-[500px] md:min-w-0">
         {whiteKeys.map((key, index) => {
           const noteInfo = noteMap.get(key.note as Note);
           const color = noteInfo ? getIntervalColor(noteInfo.interval) : '';
           return (
-            <div key={`${key.note}${key.octave}-${index}`} className="relative h-full flex-1 border border-[#30363d] bg-[#c9d1d9] rounded-b-md flex items-end justify-center pb-2">
+            <div key={`${key.note}${key.octave}-${index}`} className="relative h-full flex-1 border border-[#30363d] bg-[#c9d1d9] rounded-b-md flex items-end justify-center pb-1 md:pb-2">
               {noteInfo && (
                 <div
-                  className="w-6 h-6 rounded-full shadow-lg"
+                  className="w-4 h-4 md:w-6 md:h-6 rounded-full shadow-lg"
                   style={{ backgroundColor: color, borderColor: color, borderWidth: '2px' }}
                 ></div>
               )}
-              <span className="absolute bottom-2 text-xs text-black font-mono font-bold">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
+              <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-black font-mono font-bold">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
             </div>
           );
         })}
@@ -95,10 +95,10 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
           return (
             <div key={`${key.note}${key.octave}-${index}`}
                  style={{ left: `${leftPosition}%`}}
-                 className="absolute top-0 w-[5%] h-2/3 bg-[#21262d] border border-[#30363d] rounded-b-md z-10 flex items-end justify-center pb-2">
+                 className="absolute top-0 w-[5%] h-2/3 bg-[#21262d] border border-[#30363d] rounded-b-md z-10 flex items-end justify-center pb-1 md:pb-2">
               {noteInfo && (
                 <div
-                  className="w-5 h-5 rounded-full shadow-lg"
+                  className="w-3 h-3 md:w-5 md:h-5 rounded-full shadow-lg"
                   style={{ backgroundColor: color, borderColor: color, borderWidth: '2px' }}
                 ></div>
               )}

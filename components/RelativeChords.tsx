@@ -13,6 +13,7 @@ interface RelativeChordsProps {
   onSelectChord: (root: Note, type: ChordType) => void;
   onAddToProgression: (chord: Chord) => void;
   onHoverChord?: (chord: Chord | null) => void;
+  compact?: boolean;
 }
 
 const isChordEqual = (a: Chord, b: Chord): boolean => a.root === b.root && a.type === b.type;
@@ -66,7 +67,7 @@ const CompatibleKeysBadge: React.FC<{ keys: Key[] }> = ({ keys }) => {
   );
 };
 
-const RelativeChords: React.FC<RelativeChordsProps> = ({ chords, selectedChord, progression, onSelectChord, onAddToProgression, onHoverChord }) => {
+const RelativeChords: React.FC<RelativeChordsProps> = ({ chords, selectedChord, progression, onSelectChord, onAddToProgression, onHoverChord, compact = false }) => {
   const hasMultipleChords = progression.length > 1;
 
   const detectedPattern = useMemo(() => {
@@ -99,17 +100,17 @@ const RelativeChords: React.FC<RelativeChordsProps> = ({ chords, selectedChord, 
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-4 font-mono">Relative Chords</h2>
+      {!compact && <h2 className="text-lg font-bold mb-4 font-mono">Relative Chords</h2>}
 
-      {detectedPattern && (
+      {detectedPattern && !compact && (
         <ProgressionPatternBadge pattern={detectedPattern} />
       )}
 
-      {hasMultipleChords && compatibleKeys.length > 0 && (
+      {hasMultipleChords && compatibleKeys.length > 0 && !compact && (
         <CompatibleKeysBadge keys={compatibleKeys} />
       )}
 
-      <div className="space-y-3">
+      <div className={compact ? "grid grid-cols-2 gap-2" : "space-y-3"}>
         {sortedChords.map(({ chord, compatibility, rank }, index) => {
           const isSelected = isChordEqual(chord, selectedChord);
           const isInProgression = progression.some(p => isChordEqual(p, chord));
@@ -124,6 +125,7 @@ const RelativeChords: React.FC<RelativeChordsProps> = ({ chords, selectedChord, 
               onSelect={() => onSelectChord(chord.root, chord.type)}
               onAdd={() => onAddToProgression(chord)}
               onHover={onHoverChord}
+              compact={compact}
             />
           );
         })}
@@ -141,6 +143,7 @@ interface ChordCardProps {
     onSelect: () => void;
     onAdd: () => void;
     onHover?: (chord: Chord | null) => void;
+    compact?: boolean;
 }
 
 const PlayButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => (
@@ -173,7 +176,7 @@ const GoldBadge: React.FC = () => (
     </div>
 );
 
-const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgression, compatibilityRank, matchingKeysCount, onSelect, onAdd, onHover }) => {
+const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgression, compatibilityRank, matchingKeysCount, onSelect, onAdd, onHover, compact = false }) => {
     const voicing = getChordVoicing(chord.root, chord.type);
     const romanNumeral = getRomanNumeral(chord.root, chord.type);
 
@@ -209,6 +212,45 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
 
     const opacityClass = isDimmed ? 'opacity-35' : '';
 
+    // Compact mobile layout
+    if (compact) {
+        return (
+            <div
+                className={`group ${bgClass} border ${borderClass} rounded-lg p-2 transition-all duration-200 active:border-[#4493f8] relative ${opacityClass}`}
+                onClick={onSelect}
+            >
+                {isGold && <GoldBadge />}
+                {isSelected && (
+                    <div className="absolute top-1 left-1 flex items-center justify-center w-4 h-4 rounded-full bg-[#4493f8]/20">
+                        <CheckIcon />
+                    </div>
+                )}
+                {isInProgression && !isSelected && (
+                    <div className="absolute top-1 left-1">
+                        <ProgressionDot />
+                    </div>
+                )}
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                        <p className="font-bold font-mono text-sm truncate">{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
+                        <p className="text-xs text-[#8b949e] font-mono">{romanNumeral}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <PlayButton onClick={handlePlay} />
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onAdd(); }}
+                            className="text-[#8b949e] hover:text-[#4493f8]"
+                            title="Add to progression"
+                        >
+                            <PlusCircleIcon />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Desktop full layout
     return (
         <div
             className={`group ${bgClass} border ${borderClass} rounded-lg p-3 transition-all duration-200 hover:border-[#4493f8] hover:shadow-lg hover:bg-[#161b22] relative ${opacityClass}`}

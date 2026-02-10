@@ -50,8 +50,8 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
   const isDisabled = progression.length === 0;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-24 bg-[#161b22] border-t border-[#30363d] flex items-center px-4 z-50">
-      <div className="flex items-center space-x-4">
+    <div className="fixed bottom-0 left-0 right-0 h-20 md:h-24 bg-[#161b22] border-t border-[#30363d] flex items-center px-2 md:px-4 z-50">
+      <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
         <button
           onClick={isPlaying ? handleStop : handlePlay}
           disabled={isDisabled && !isPlaying}
@@ -68,20 +68,20 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
         <button onClick={onClear} className="p-2 rounded-full bg-[#30363d] hover:bg-red-600 transition-colors">
           <TrashIcon />
         </button>
-        <div className="flex items-center space-x-2">
+        <div className="hidden sm:flex items-center space-x-2">
           <input
             type="range"
             min="60"
             max="240"
             value={bpm}
             onChange={(e) => setBpm(Number(e.target.value))}
-            className="w-24 accent-[#4493f8]"
+            className="w-16 md:w-24 accent-[#4493f8]"
           />
-          <span className="text-sm font-mono w-12 text-center">{bpm} BPM</span>
+          <span className="text-xs md:text-sm font-mono w-10 md:w-12 text-center">{bpm}</span>
         </div>
       </div>
-      <div className="mx-4 h-12 w-px bg-[#30363d]"></div>
-      <div className="flex-1 flex items-center space-x-2 overflow-x-auto">
+      <div className="mx-2 md:mx-4 h-10 md:h-12 w-px bg-[#30363d] flex-shrink-0"></div>
+      <div className="flex-1 flex items-center space-x-2 overflow-x-auto min-w-0">
         {progression.map((chord, index) => (
           <ProgressionChordBlock
             key={index}
@@ -91,7 +91,7 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
           />
         ))}
         {progression.length === 0 && (
-          <div className="text-[#8b949e]">Add chords from the right panel to build a progression.</div>
+          <div className="text-[#8b949e] text-xs md:text-base whitespace-nowrap">Tap + on chords to add</div>
         )}
       </div>
     </div>
@@ -111,19 +111,21 @@ const ProgressionChordBlock: React.FC<ProgressionChordBlockProps> = ({ chord, on
 
     return (
         <div
-            className="group relative flex-shrink-0 flex items-center space-x-2 bg-[#0d1117] border border-[#30363d] rounded-lg p-2 h-16 cursor-pointer hover:border-[#4493f8] transition-colors"
+            className="group relative flex-shrink-0 flex items-center space-x-1 md:space-x-2 bg-[#0d1117] border border-[#30363d] rounded-lg p-1.5 md:p-2 h-12 md:h-16 cursor-pointer hover:border-[#4493f8] active:border-[#4493f8] transition-colors"
             onClick={() => setShowVoicings(!showVoicings)}
         >
-            <MiniFretboard voicing={currentVoicing?.voicing || []} />
+            <div className="hidden md:block">
+                <MiniFretboard voicing={currentVoicing?.voicing || []} />
+            </div>
             <div className="flex flex-col">
-                <span className="font-mono font-bold">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
+                <span className="font-mono font-bold text-sm md:text-base">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
                 {allVoicings.length > 1 && (
-                    <span className="text-[10px] text-[#8b949e] font-mono">{currentVoicing?.name}</span>
+                    <span className="text-[8px] md:text-[10px] text-[#8b949e] font-mono">{currentVoicing?.name}</span>
                 )}
             </div>
             <button
                 onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity"
             >
                 <XIcon />
             </button>

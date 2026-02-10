@@ -7,9 +7,10 @@ interface ChordSelectorProps {
   selectedType: ChordType;
   onRootChange: (root: Note) => void;
   onTypeChange: (type: ChordType) => void;
+  compact?: boolean;
 }
 
-const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedType, onRootChange, onTypeChange }) => {
+const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedType, onRootChange, onTypeChange, compact = false }) => {
   const selectedIndex = NOTES.indexOf(selectedRoot);
   const fifthIndex = (selectedIndex + 7) % 12; // Perfect 5th
   const fourthIndex = (selectedIndex + 5) % 12; // Perfect 4th
@@ -27,6 +28,67 @@ const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedTyp
     return 'bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] hover:border-[#8b949e]';
   };
 
+  // Compact mobile layout
+  if (compact) {
+    return (
+      <div className="flex flex-col gap-3">
+        {/* Root Note - Horizontal scroll */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-xs font-semibold text-[#8b949e] font-mono">ROOT</h3>
+            <div className="flex gap-1 text-[10px] font-mono">
+              <span className="flex items-center gap-0.5">
+                <span className="w-2 h-2 rounded-full border border-[#3fb950]"></span>
+                <span className="text-[#8b949e]">5th</span>
+              </span>
+              <span className="flex items-center gap-0.5">
+                <span className="w-2 h-2 rounded-full border border-[#d29922]"></span>
+                <span className="text-[#8b949e]">4th</span>
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+            {NOTES.map((note, i) => {
+              const isSelected = note === selectedRoot;
+              return (
+                <button
+                  key={note}
+                  onClick={() => onRootChange(note)}
+                  className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 font-mono
+                    ${getNoteStyle(i, isSelected)}`}
+                  title={i === fifthIndex ? '5th' : i === fourthIndex ? '4th' : undefined}
+                >
+                  {note}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Chord Type - Horizontal scroll */}
+        <div>
+          <h3 className="text-xs font-semibold mb-2 text-[#8b949e] font-mono">TYPE</h3>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+            {CHORD_TYPE_IDS.map(type => {
+              const isSelected = type === selectedType;
+              return (
+                <button
+                  key={type}
+                  onClick={() => onTypeChange(type)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-md text-center text-xs transition-colors duration-200
+                    ${isSelected ? 'bg-[#4493f8] text-white' : 'bg-[#21262d] border border-[#30363d] hover:bg-[#30363d]'} font-mono`}
+                >
+                  {CHORD_TYPES[type].symbol || type}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop circular layout
   return (
     <div className="flex flex-col h-full">
       <h2 className="text-lg font-bold mb-4 font-mono">Chord Selector</h2>

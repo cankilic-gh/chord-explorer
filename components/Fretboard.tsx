@@ -29,15 +29,15 @@ const DEFAULT_DOT_COLOR = '#888888';
 
 const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => {
   return (
-    <div className={`bg-[#161b22] border rounded-lg p-6 mt-4 select-none transition-all duration-200 ${isPreview ? 'border-[#4493f8] ring-1 ring-[#4493f8]/30' : 'border-[#30363d]'}`}>
+    <div className={`bg-[#161b22] border rounded-lg p-3 md:p-6 mt-3 md:mt-4 select-none transition-all duration-200 ${isPreview ? 'border-[#4493f8] ring-1 ring-[#4493f8]/30' : 'border-[#30363d]'}`}>
       <div className="relative">
         {/* Nut */}
-        <div className="absolute top-0 -left-1 h-full w-2 bg-[#c9d1d9] rounded-sm"></div>
+        <div className="absolute top-0 -left-1 h-full w-1.5 md:w-2 bg-[#c9d1d9] rounded-sm"></div>
 
         {/* Frets */}
         <div className="flex justify-between">
           {[...Array(FRET_COUNT + 1)].map((_, i) => (
-            <div key={i} className="w-px h-28 bg-[#30363d]"></div>
+            <div key={i} className="w-px h-20 md:h-28 bg-[#30363d]"></div>
           ))}
         </div>
 
@@ -49,9 +49,9 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => 
         </div>
 
         {/* Fret Markers */}
-        <div className="absolute -bottom-5 left-0 right-0 flex justify-around">
+        <div className="absolute -bottom-4 md:-bottom-5 left-0 right-0 flex justify-around">
             {[...Array(FRET_COUNT)].map((_, i) => (
-                 <div key={i} className="w-full text-center text-xs text-[#8b949e] font-mono">
+                 <div key={i} className="w-full text-center text-[10px] md:text-xs text-[#8b949e] font-mono">
                     {FRET_MARKERS.includes(i + 1) ? (i + 1) : ''}
                 </div>
             ))}
@@ -59,8 +59,8 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => 
         <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-around">
             {[...Array(FRET_COUNT)].map((_, i) => (
                  <div key={i} className="w-full text-center">
-                    {FRET_MARKERS.includes(i + 1) && (i + 1) !== 12 && <div className="w-2 h-2 rounded-full bg-[#30363d] mx-auto"></div>}
-                    {(i+1) === 12 && <div className="flex justify-center gap-4"><div className="w-2 h-2 rounded-full bg-[#30363d]"></div><div className="w-2 h-2 rounded-full bg-[#30363d]"></div></div>}
+                    {FRET_MARKERS.includes(i + 1) && (i + 1) !== 12 && <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#30363d] mx-auto"></div>}
+                    {(i+1) === 12 && <div className="flex justify-center gap-2 md:gap-4"><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#30363d]"></div><div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#30363d]"></div></div>}
                 </div>
             ))}
         </div>
@@ -78,7 +78,7 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => 
                 return (
                     <div
                         key={i}
-                        className="absolute w-6 h-6 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg flex items-center justify-center border-2"
+                        className="absolute w-4 h-4 md:w-6 md:h-6 rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg flex items-center justify-center border-2"
                         style={{
                             top,
                             left,
