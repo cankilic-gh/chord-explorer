@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ProgressionChord, CHORD_TYPES } from '../constants/musicData';
 import MiniFretboard from './MiniFretboard';
 import { getAllChordVoicings } from '../lib/musicTheory';
-import { playProgression, stopPlayback } from '../lib/audioEngine';
+import { playProgression, stopPlayback, ensureAudioContext } from '../lib/audioEngine';
 import { PlayIcon } from './icons/PlayIcon';
 import { StopIcon } from './icons/StopIcon';
 import { TrashIcon } from './icons/TrashIcon';
@@ -23,6 +23,8 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
   const handlePlay = useCallback(async () => {
     if (progression.length === 0) return;
 
+    // Ensure audio context is started (required for mobile)
+    await ensureAudioContext();
     setIsPlaying(true);
     await playProgression(progression, bpm, 'guitar');
     // Progression now loops continuously until stopped

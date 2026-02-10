@@ -8,10 +8,19 @@ let reverb: Tone.Reverb | null = null;
 let isInitialized = false;
 let currentSequence: Tone.Part | null = null;
 
-const initializeAudio = async (): Promise<void> => {
-  if (isInitialized) return;
+const resumeAudioContext = async (): Promise<void> => {
+  const context = Tone.getContext();
+  if (context.state === 'suspended') {
+    await context.resume();
+  }
+};
 
+const initializeAudio = async (): Promise<void> => {
+  // Always try to start/resume Tone for mobile compatibility
   await Tone.start();
+  await resumeAudioContext();
+
+  if (isInitialized) return;
 
   reverb = new Tone.Reverb({
     decay: 2.5,
@@ -149,6 +158,9 @@ export const stopPlayback = (): void => {
 };
 
 export const ensureAudioContext = async (): Promise<void> => {
+  // Must be called in response to user gesture for mobile browsers
+  await Tone.start();
+  await resumeAudioContext();
   await initializeAudio();
 };
 
