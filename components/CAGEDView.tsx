@@ -129,17 +129,49 @@ const FullFretboardView: React.FC<{
   shapes: CAGEDShape[];
   selectedShape: CAGEDShape | null;
   onSelectShape: (shape: CAGEDShape) => void;
-}> = ({ shapes, selectedShape, onSelectShape }) => {
+  rootNote: Note;
+  isMinor: boolean;
+}> = ({ shapes, selectedShape, onSelectShape, rootNote, isMinor }) => {
   const maxFret = 15;
+  const stringCount = 6;
+  const topPadding = 15; // % from top for first string
+  const stringSpacing = 11; // % between strings
 
   return (
-    <div className="relative h-24 bg-[#0d1117] rounded-lg border border-[#30363d] overflow-hidden">
+    <div className="relative h-32 bg-[#0d1117] rounded-lg border border-[#30363d] overflow-hidden">
+      {/* Nut */}
+      <div className="absolute left-0 top-0 bottom-6 w-1.5 bg-[#8b949e]" />
+
+      {/* Fret lines */}
+      {Array.from({ length: maxFret + 1 }).map((_, fret) => (
+        <div
+          key={fret}
+          className="absolute h-[calc(100%-24px)] w-px bg-[#30363d]"
+          style={{ left: `${(fret / maxFret) * 100}%` }}
+        />
+      ))}
+
+      {/* String lines */}
+      {[0, 1, 2, 3, 4, 5].map(string => (
+        <div
+          key={string}
+          className="absolute w-full bg-[#484f58]"
+          style={{
+            top: `${topPadding + string * stringSpacing}%`,
+            height: string < 3 ? '1px' : '2px',
+          }}
+        />
+      ))}
+
       {/* Fret markers */}
       {[3, 5, 7, 9, 12, 15].map(fret => (
         <React.Fragment key={fret}>
           <div
-            className="absolute top-1/2 w-2 h-2 rounded-full bg-[#30363d] transform -translate-x-1/2 -translate-y-1/2"
-            style={{ left: `${((fret - 0.5) / maxFret) * 100}%` }}
+            className="absolute w-2 h-2 rounded-full bg-[#30363d] transform -translate-x-1/2"
+            style={{
+              left: `${((fret - 0.5) / maxFret) * 100}%`,
+              top: `${topPadding + 2.5 * stringSpacing}%`,
+            }}
           />
           <div
             className="absolute bottom-1 text-[10px] text-[#8b949e] font-mono transform -translate-x-1/2"
@@ -150,52 +182,64 @@ const FullFretboardView: React.FC<{
         </React.Fragment>
       ))}
 
-      {/* String lines */}
-      {[0, 1, 2, 3, 4, 5].map(string => (
-        <div
-          key={string}
-          className="absolute w-full h-px bg-[#30363d]"
-          style={{ top: `${15 + string * 12}%` }}
-        />
-      ))}
-
-      {/* Fret lines */}
-      {Array.from({ length: maxFret + 1 }).map((_, fret) => (
-        <div
-          key={fret}
-          className="absolute h-full w-px bg-[#30363d]"
-          style={{ left: `${(fret / maxFret) * 100}%` }}
-        />
-      ))}
-
-      {/* Shape regions */}
-      {shapes.map((shape, idx) => {
+      {/* Shape regions with border and notes */}
+      {shapes.map((shape) => {
         const startFret = shape.fret;
         const endFret = Math.min(startFret + 4, maxFret);
         const isSelected = selectedShape?.name === shape.name;
+        const voicing = cagedShapeToVoicing(shape, rootNote, isMinor);
 
         return (
-          <button
-            key={shape.name}
-            onClick={() => onSelectShape(shape)}
-            className={`absolute top-2 bottom-6 rounded transition-all ${
-              isSelected ? 'opacity-90' : 'opacity-50 hover:opacity-70'
-            }`}
-            style={{
-              left: `${(startFret / maxFret) * 100}%`,
-              width: `${((endFret - startFret) / maxFret) * 100}%`,
-              backgroundColor: shape.color,
-            }}
-          >
-            <span className="absolute inset-0 flex items-center justify-center text-white font-bold font-mono text-lg">
-              {shape.name}
-            </span>
-          </button>
+          <React.Fragment key={shape.name}>
+            {/* Shape region border */}
+            <button
+              onClick={() => onSelectShape(shape)}
+              className={`absolute top-1 rounded transition-all ${
+                isSelected
+                  ? 'bg-opacity-15 border-2'
+                  : 'bg-opacity-5 border hover:bg-opacity-10'
+              }`}
+              style={{
+                left: `${(startFret / maxFret) * 100}%`,
+                width: `${((endFret - startFret) / maxFret) * 100}%`,
+                height: 'calc(100% - 28px)',
+                borderColor: shape.color,
+                backgroundColor: shape.color,
+              }}
+            >
+              {/* Shape label */}
+              <span
+                className="absolute top-0.5 left-1 text-xs font-bold font-mono"
+                style={{ color: shape.color }}
+              >
+                {shape.name}
+              </span>
+            </button>
+
+            {/* Notes for this shape */}
+            {voicing.map((pos, idx) => {
+              const fretPos = pos.fret === 0 ? 0.3 : pos.fret - 0.5;
+              const x = (fretPos / maxFret) * 100;
+              const y = topPadding + (5 - pos.string) * stringSpacing;
+
+              return (
+                <div
+                  key={`${shape.name}-${idx}`}
+                  className={`absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2 border transition-all ${
+                    isSelected ? 'opacity-100 scale-100' : 'opacity-40 scale-75'
+                  }`}
+                  style={{
+                    left: `${x}%`,
+                    top: `${y}%`,
+                    backgroundColor: INTERVAL_COLORS[pos.interval] || shape.color,
+                    borderColor: 'rgba(255,255,255,0.3)',
+                  }}
+                />
+              );
+            })}
+          </React.Fragment>
         );
       })}
-
-      {/* Nut */}
-      <div className="absolute left-0 top-0 bottom-6 w-1 bg-[#8b949e]" />
     </div>
   );
 };
@@ -268,6 +312,8 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
             shapes={shapes}
             selectedShape={selectedShape}
             onSelectShape={setSelectedShape}
+            rootNote={rootNote}
+            isMinor={isMinor}
           />
           <p className="text-xs text-[#8b949e] mt-2 text-center">
             Bir bölgeye tıklayarak detayları görün
