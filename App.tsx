@@ -6,6 +6,7 @@ import Fretboard from './components/Fretboard';
 import RelativeChords from './components/RelativeChords';
 import ProgressionBuilder from './components/ProgressionBuilder';
 import CircleOfFifths from './components/CircleOfFifths';
+import CAGEDView from './components/CAGEDView';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
 import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
 
@@ -14,6 +15,7 @@ const App: React.FC = () => {
   const [chordType, setChordType] = useState<ChordType>('minor');
   const [hoveredChord, setHoveredChord] = useState<AppChord | null>(null);
   const [showCircleOfFifths, setShowCircleOfFifths] = useState(false);
+  const [showCAGED, setShowCAGED] = useState(false);
   const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(0);
   const [progression, setProgression] = useState<ProgressionChord[]>([]);
 
@@ -99,17 +101,30 @@ const App: React.FC = () => {
       <header className="p-4 border-b border-[#30363d] flex items-center justify-between">
         <div className="w-[140px]"></div>
         <h1 className="text-2xl font-bold font-mono">Chord Explorer</h1>
-        <button
-          onClick={() => setShowCircleOfFifths(true)}
-          className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg text-sm font-mono transition-colors flex items-center gap-2"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" />
-          </svg>
-          Circle of Fifths
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCAGED(true)}
+            className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg text-sm font-mono transition-colors flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <line x1="3" y1="9" x2="21" y2="9" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+            </svg>
+            CAGED
+          </button>
+          <button
+            onClick={() => setShowCircleOfFifths(true)}
+            className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg text-sm font-mono transition-colors flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" />
+            </svg>
+            Circle of Fifths
+          </button>
+        </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-[240px] flex-shrink-0 bg-[#161b22] border-r border-[#30363d] p-4 overflow-y-auto">
@@ -123,19 +138,20 @@ const App: React.FC = () => {
         <main className="flex-1 flex flex-col p-4 overflow-y-auto pb-28">
           <div className="w-full max-w-5xl mx-auto">
             <Piano notes={chordNotes} />
-            {allVoicings.length > 1 && !hoveredChord && (
-              <div className="flex items-center gap-2 mb-3 mt-4">
-                <span className="text-sm text-[#8b949e] font-mono">Voicing:</span>
+            <div className={`flex items-center gap-2 mb-3 mt-4 h-10 transition-opacity ${hoveredChord ? 'opacity-40' : ''}`}>
+              <span className="text-sm text-[#8b949e] font-mono">Voicing:</span>
+              {allVoicings.length > 1 ? (
                 <div className="flex gap-1">
                   {allVoicings.map((voicing, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedVoicingIndex(index)}
+                      disabled={!!hoveredChord}
                       className={`px-3 py-1.5 text-sm font-mono rounded-md transition-all ${
                         currentVoicingIndex === index
                           ? 'bg-[#238636] text-white border border-[#238636]'
                           : 'bg-[#21262d] text-[#c9d1d9] border border-[#30363d] hover:bg-[#30363d] hover:border-[#8b949e]'
-                      }`}
+                      } ${hoveredChord ? 'cursor-not-allowed' : ''}`}
                     >
                       {voicing.name}
                       {voicing.startFret > 0 && (
@@ -144,8 +160,13 @@ const App: React.FC = () => {
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <span className="text-sm text-[#8b949e] font-mono">{allVoicings[0]?.name || 'Default'}</span>
+              )}
+              {hoveredChord && (
+                <span className="ml-2 text-xs text-[#8b949e] italic">Preview</span>
+              )}
+            </div>
             <Fretboard voicing={displayVoicing} isPreview={hoveredChord !== null} />
             <TheoryNote chord={selectedChord} />
           </div>
@@ -173,6 +194,17 @@ const App: React.FC = () => {
           isMinor={chordType === 'minor' || chordType === 'm7'}
           onSelectKey={handleCircleKeySelect}
           onClose={() => setShowCircleOfFifths(false)}
+        />
+      )}
+      {showCAGED && (
+        <CAGEDView
+          rootNote={rootNote}
+          chordType={chordType}
+          onSelectShape={(shape) => {
+            // CAGED shape selected - for now just close, later can update main voicing
+            console.log('Selected CAGED shape:', shape.name, 'at fret', shape.fret);
+          }}
+          onClose={() => setShowCAGED(false)}
         />
       )}
     </div>
