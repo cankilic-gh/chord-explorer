@@ -1,0 +1,5 @@
+{
+  "name": "Chord Explorer",
+  "description": "A modern, dark-themed music theory learning web application to explore chords, voicings, and progressions on piano and guitar. It provides a professional, information-dense interface for musicians and developers alike.",
+  "requestFramePermissions": []
+}
