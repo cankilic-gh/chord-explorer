@@ -107,6 +107,10 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 6th', frets: [6, 8, 8, 8, 6, -1], startFret: 6 },
     { name: 'Barre 11th', frets: [11, 11, 12, 13, 13, 11], startFret: 11 },
   ],
+  'C#_Major': [
+    { name: 'Barre 4th', frets: [4, 6, 6, 6, 4, -1], startFret: 4 },
+    { name: 'Barre 9th', frets: [9, 9, 10, 11, 11, 9], startFret: 9 },
+  ],
   'A_minor': [
     { name: 'Open', frets: [0, 1, 2, 2, 0, -1], startFret: 0 },
     { name: 'Barre 5th', frets: [5, 5, 5, 7, 7, 5], startFret: 5 },
@@ -163,16 +167,44 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 7th', frets: [7, 9, 7, 9, 7, -1], startFret: 7 },
     { name: 'Barre 12th', frets: [12, 12, 13, 12, 14, 12], startFret: 12 },
   ],
+  'F_7': [
+    { name: 'Barre 1st', frets: [1, 1, 2, 1, 3, 1], startFret: 1 },
+    { name: 'Barre 8th', frets: [8, 10, 8, 10, 8, -1], startFret: 8 },
+  ],
+  'F#_7': [
+    { name: 'Barre 2nd', frets: [2, 2, 3, 2, 4, 2], startFret: 2 },
+    { name: 'Barre 9th', frets: [9, 11, 9, 11, 9, -1], startFret: 9 },
+  ],
+  'G#_7': [
+    { name: 'Barre 4th', frets: [4, 4, 5, 4, 6, 4], startFret: 4 },
+    { name: 'Barre 11th', frets: [11, 13, 11, 13, 11, -1], startFret: 11 },
+  ],
+  'A#_7': [
+    { name: 'Barre 1st', frets: [1, 3, 1, 3, 1, -1], startFret: 1 },
+    { name: 'Barre 6th', frets: [6, 6, 7, 6, 8, 6], startFret: 6 },
+  ],
+  'B_7': [
+    { name: 'Open', frets: [2, 0, 2, 1, 2, -1], startFret: 0 },
+    { name: 'Barre 7th', frets: [7, 7, 8, 7, 9, 7], startFret: 7 },
+  ],
+  'C#_7': [
+    { name: 'Barre 4th', frets: [4, 6, 4, 6, 4, -1], startFret: 4 },
+    { name: 'Barre 9th', frets: [9, 9, 10, 9, 11, 9], startFret: 9 },
+  ],
+  'D#_7': [
+    { name: 'Barre 6th', frets: [6, 8, 6, 8, 6, -1], startFret: 6 },
+    { name: 'Barre 11th', frets: [11, 11, 12, 11, 13, 11], startFret: 11 },
+  ],
   'B_dim': [
     { name: 'Open', frets: [-1, 3, 4, 3, 2, -1], startFret: 0 },
-    { name: 'Barre 7th', frets: [7, 8, 7, 8, -1, -1], startFret: 7 },
+    { name: 'Barre 7th', frets: [7, 6, 7, -1, 9, -1], startFret: 6 },
   ],
   'F#_minor': [
     { name: 'Barre 2nd', frets: [2, 2, 2, 4, 4, 2], startFret: 2 },
     { name: 'Barre 9th', frets: [-1, 10, 11, 11, 9, -1], startFret: 9 },
   ],
   'C#_minor': [
-    { name: 'Barre 4th', frets: [4, 4, 5, 6, 6, 4], startFret: 4 },
+    { name: 'Barre 4th', frets: [4, 5, 6, 6, 4, -1], startFret: 4 },
     { name: 'Barre 9th', frets: [9, 9, 9, 11, 11, 9], startFret: 9 },
   ],
   'G#_minor': [
@@ -180,7 +212,7 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 11th', frets: [-1, 12, 13, 13, 11, -1], startFret: 11 },
   ],
   'D#_minor': [
-    { name: 'Barre 6th', frets: [6, 6, 6, 8, 8, 6], startFret: 6 },
+    { name: 'Barre 6th', frets: [6, 7, 8, 8, 6, -1], startFret: 6 },
     { name: 'Barre 11th', frets: [11, 11, 11, 13, 13, 11], startFret: 11 },
   ],
   'A#_minor': [
@@ -191,49 +223,49 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
   // Major 7th (maj7) voicings
   'C_maj7': [
     { name: 'Open', frets: [0, 0, 0, 2, 3, -1], startFret: 0 },
-    { name: 'Barre 3rd', frets: [3, 4, 5, 5, 3, -1], startFret: 3 },
-    { name: 'Barre 8th', frets: [8, 7, 9, 9, 10, 8], startFret: 7 },
+    { name: 'Barre 3rd', frets: [3, 5, 4, 5, 3, -1], startFret: 3 },
+    { name: 'Barre 8th', frets: [8, 8, 9, 9, 10, 8], startFret: 8 },
   ],
   'C#_maj7': [
-    { name: 'Barre 4th', frets: [4, 5, 6, 6, 4, -1], startFret: 4 },
-    { name: 'Barre 9th', frets: [9, 8, 10, 10, 11, 9], startFret: 8 },
+    { name: 'Barre 4th', frets: [4, 6, 5, 6, 4, -1], startFret: 4 },
+    { name: 'Barre 9th', frets: [9, 9, 10, 10, 11, 9], startFret: 9 },
   ],
   'D_maj7': [
     { name: 'Open', frets: [2, 2, 2, 0, -1, -1], startFret: 0 },
-    { name: 'Barre 5th', frets: [5, 6, 7, 7, 5, -1], startFret: 5 },
-    { name: 'Barre 10th', frets: [10, 9, 11, 11, 12, 10], startFret: 9 },
+    { name: 'Barre 5th', frets: [5, 7, 6, 7, 5, -1], startFret: 5 },
+    { name: 'Barre 10th', frets: [10, 10, 11, 11, 12, 10], startFret: 10 },
   ],
   'D#_maj7': [
-    { name: 'Barre 6th', frets: [6, 7, 8, 8, 6, -1], startFret: 6 },
-    { name: 'Barre 11th', frets: [11, 10, 12, 12, 13, 11], startFret: 10 },
+    { name: 'Barre 6th', frets: [6, 8, 7, 8, 6, -1], startFret: 6 },
+    { name: 'Barre 11th', frets: [11, 11, 12, 12, 13, 11], startFret: 11 },
   ],
   'E_maj7': [
     { name: 'Open', frets: [0, 0, 1, 1, 2, 0], startFret: 0 },
-    { name: 'Barre 7th', frets: [7, 8, 9, 9, 7, -1], startFret: 7 },
-    { name: 'Barre 12th', frets: [12, 11, 13, 13, 14, 12], startFret: 11 },
+    { name: 'Barre 7th', frets: [7, 9, 8, 9, 7, -1], startFret: 7 },
+    { name: 'Barre 12th', frets: [12, 12, 13, 13, 14, 12], startFret: 12 },
   ],
   'F_maj7': [
     { name: 'Open', frets: [0, 1, 2, 2, -1, -1], startFret: 0 },
-    { name: 'Barre 1st', frets: [1, 0, 2, 2, 3, 1], startFret: 0 },
-    { name: 'Barre 8th', frets: [8, 9, 10, 10, 8, -1], startFret: 8 },
+    { name: 'Barre 1st', frets: [1, 1, 2, 2, 3, 1], startFret: 1 },
+    { name: 'Barre 8th', frets: [8, 10, 9, 10, 8, -1], startFret: 8 },
   ],
   'F#_maj7': [
-    { name: 'Barre 2nd', frets: [2, 1, 3, 3, 4, 2], startFret: 1 },
-    { name: 'Barre 9th', frets: [9, 10, 11, 11, 9, -1], startFret: 9 },
+    { name: 'Barre 2nd', frets: [2, 2, 3, 3, 4, 2], startFret: 2 },
+    { name: 'Barre 9th', frets: [9, 11, 10, 11, 9, -1], startFret: 9 },
   ],
   'G_maj7': [
     { name: 'Open', frets: [2, 0, 0, 0, 2, 3], startFret: 0 },
-    { name: 'Barre 3rd', frets: [3, 2, 4, 4, 5, 3], startFret: 2 },
-    { name: 'Barre 10th', frets: [10, 11, 12, 12, 10, -1], startFret: 10 },
+    { name: 'Barre 3rd', frets: [3, 3, 4, 4, 5, 3], startFret: 3 },
+    { name: 'Barre 10th', frets: [10, 12, 11, 12, 10, -1], startFret: 10 },
   ],
   'G#_maj7': [
-    { name: 'Barre 4th', frets: [4, 3, 5, 5, 6, 4], startFret: 3 },
-    { name: 'Barre 11th', frets: [11, 12, 13, 13, 11, -1], startFret: 11 },
+    { name: 'Barre 4th', frets: [4, 4, 5, 5, 6, 4], startFret: 4 },
+    { name: 'Barre 11th', frets: [11, 13, 12, 13, 11, -1], startFret: 11 },
   ],
   'A_maj7': [
     { name: 'Open', frets: [0, 2, 1, 2, 0, -1], startFret: 0 },
-    { name: 'Barre 5th', frets: [5, 4, 6, 6, 7, 5], startFret: 4 },
-    { name: 'Barre 12th', frets: [12, 13, 14, 14, 12, -1], startFret: 12 },
+    { name: 'Barre 5th', frets: [5, 5, 6, 6, 7, 5], startFret: 5 },
+    { name: 'Barre 12th', frets: [12, 14, 13, 14, 12, -1], startFret: 12 },
   ],
   'A#_maj7': [
     { name: 'Barre 1st', frets: [1, 3, 2, 3, 1, -1], startFret: 1 },
@@ -299,26 +331,26 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
 
   // Diminished (dim) voicings
   'C_dim': [
-    { name: 'Barre 3rd', frets: [2, 4, 2, 4, 3, -1], startFret: 2 },
-    { name: 'Barre 8th', frets: [8, 9, 8, 9, -1, -1], startFret: 8 },
+    { name: 'Barre 3rd', frets: [-1, 4, 5, 4, 3, -1], startFret: 3 },
+    { name: 'Barre 8th', frets: [8, 7, 8, 10, -1, -1], startFret: 7 },
   ],
   'C#_dim': [
-    { name: 'Barre 4th', frets: [3, 5, 3, 5, 4, -1], startFret: 3 },
-    { name: 'Barre 9th', frets: [9, 10, 9, 10, -1, -1], startFret: 9 },
+    { name: 'Barre 4th', frets: [-1, 5, 6, 5, 4, -1], startFret: 4 },
+    { name: 'Barre 9th', frets: [9, 8, 9, 11, -1, -1], startFret: 8 },
   ],
   'D_dim': [
     { name: 'Open', frets: [1, 0, 1, 0, -1, -1], startFret: 0 },
-    { name: 'Barre 5th', frets: [4, 6, 4, 6, 5, -1], startFret: 4 },
-    { name: 'Barre 10th', frets: [10, 11, 10, 11, -1, -1], startFret: 10 },
+    { name: 'Barre 5th', frets: [-1, 6, 7, 6, 5, -1], startFret: 5 },
+    { name: 'Barre 10th', frets: [10, 9, 10, 12, -1, -1], startFret: 9 },
   ],
   'D#_dim': [
-    { name: 'Barre 5th', frets: [5, 7, 5, 7, 6, -1], startFret: 5 },
-    { name: 'Barre 11th', frets: [11, 12, 11, 12, -1, -1], startFret: 11 },
+    { name: 'Barre 6th', frets: [-1, 7, 8, 7, 6, -1], startFret: 6 },
+    { name: 'Barre 11th', frets: [11, 10, 11, 13, -1, -1], startFret: 10 },
   ],
   'E_dim': [
     { name: 'Open', frets: [-1, 2, 0, 2, 1, 0], startFret: 0 },
-    { name: 'Barre 6th', frets: [6, 8, 6, 8, 7, -1], startFret: 6 },
-    { name: 'Barre 12th', frets: [12, 13, 12, 13, -1, -1], startFret: 12 },
+    { name: 'Barre 7th', frets: [-1, 8, 9, 8, 7, -1], startFret: 7 },
+    { name: 'Barre 12th', frets: [12, 11, 12, 14, -1, -1], startFret: 11 },
   ],
   'F_dim': [
     { name: 'Barre 1st', frets: [-1, 3, 1, 3, 2, 1], startFret: 1 },
@@ -349,26 +381,26 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
 
   // Diminished 7th (dim7) voicings
   'C_dim7': [
-    { name: 'Barre 3rd', frets: [2, 4, 2, 4, 3, -1], startFret: 2 },
-    { name: 'Barre 8th', frets: [8, 9, 8, 9, 8, -1], startFret: 8 },
+    { name: 'Barre 3rd', frets: [-1, 4, 5, 4, 3, -1], startFret: 3 },
+    { name: 'Barre 8th', frets: [8, 7, 8, 7, -1, -1], startFret: 7 },
   ],
   'C#_dim7': [
-    { name: 'Barre 4th', frets: [3, 5, 3, 5, 4, -1], startFret: 3 },
-    { name: 'Barre 9th', frets: [9, 10, 9, 10, 9, -1], startFret: 9 },
+    { name: 'Barre 4th', frets: [-1, 5, 6, 5, 4, -1], startFret: 4 },
+    { name: 'Barre 9th', frets: [9, 8, 9, 8, -1, -1], startFret: 8 },
   ],
   'D_dim7': [
     { name: 'Open', frets: [1, 0, 1, 0, -1, -1], startFret: 0 },
-    { name: 'Barre 4th', frets: [4, 6, 4, 6, 5, -1], startFret: 4 },
-    { name: 'Barre 10th', frets: [10, 11, 10, 11, 10, -1], startFret: 10 },
+    { name: 'Barre 5th', frets: [-1, 6, 7, 6, 5, -1], startFret: 5 },
+    { name: 'Barre 10th', frets: [10, 9, 10, 9, -1, -1], startFret: 9 },
   ],
   'D#_dim7': [
-    { name: 'Barre 5th', frets: [5, 7, 5, 7, 6, -1], startFret: 5 },
-    { name: 'Barre 11th', frets: [11, 12, 11, 12, 11, -1], startFret: 11 },
+    { name: 'Barre 6th', frets: [-1, 7, 8, 7, 6, -1], startFret: 6 },
+    { name: 'Barre 11th', frets: [11, 10, 11, 10, -1, -1], startFret: 10 },
   ],
   'E_dim7': [
     { name: 'Open', frets: [0, 2, 0, 2, 1, 0], startFret: 0 },
-    { name: 'Barre 6th', frets: [6, 8, 6, 8, 7, -1], startFret: 6 },
-    { name: 'Barre 12th', frets: [12, 13, 12, 13, 12, -1], startFret: 12 },
+    { name: 'Barre 7th', frets: [-1, 8, 9, 8, 7, -1], startFret: 7 },
+    { name: 'Barre 12th', frets: [12, 11, 12, 11, -1, -1], startFret: 11 },
   ],
   'F_dim7': [
     { name: 'Barre 1st', frets: [1, 3, 1, 3, 2, 1], startFret: 1 },
@@ -406,51 +438,47 @@ export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
     { name: 'Barre 8th', frets: [8, 9, 9, 10, -1, 8], startFret: 8 },
   ],
   'C#_aug': [
-    { name: 'Barre 1st', frets: [1, 2, 2, 3, 4, -1], startFret: 1 },
+    { name: 'Barre 1st', frets: [1, 2, 2, 3, -1, 1], startFret: 1 },
     { name: 'Barre 9th', frets: [9, 10, 10, 11, -1, 9], startFret: 9 },
   ],
   'D_aug': [
-    { name: 'Open', frets: [2, 3, 3, -1, -1, -1], startFret: 0 },
-    { name: 'Barre 2nd', frets: [2, 3, 3, 4, 5, -1], startFret: 2 },
+    { name: 'Open', frets: [2, 3, 3, 4, -1, 2], startFret: 0 },
     { name: 'Barre 10th', frets: [10, 11, 11, 12, -1, 10], startFret: 10 },
   ],
   'D#_aug': [
-    { name: 'Barre 3rd', frets: [3, 4, 4, 5, 6, -1], startFret: 3 },
+    { name: 'Barre 3rd', frets: [3, 4, 4, 5, -1, 3], startFret: 3 },
     { name: 'Barre 11th', frets: [11, 12, 12, 13, -1, 11], startFret: 11 },
   ],
   'E_aug': [
-    { name: 'Open', frets: [0, 0, 1, 2, 2, -1], startFret: 0 },
-    { name: 'Barre 4th', frets: [4, 5, 5, 6, 7, -1], startFret: 4 },
+    { name: 'Open', frets: [0, 1, 1, 2, -1, 0], startFret: 0 },
     { name: 'Barre 12th', frets: [12, 13, 13, 14, -1, 12], startFret: 12 },
   ],
   'F_aug': [
-    { name: 'Barre 1st', frets: [1, 1, 2, 3, 3, -1], startFret: 1 },
-    { name: 'Barre 5th', frets: [5, 6, 6, 7, 8, -1], startFret: 5 },
+    { name: 'Barre 1st', frets: [1, 2, 2, 3, -1, 1], startFret: 1 },
+    { name: 'Barre 5th', frets: [5, 6, 6, 7, -1, 5], startFret: 5 },
   ],
   'F#_aug': [
-    { name: 'Barre 2nd', frets: [2, 2, 3, 4, 4, -1], startFret: 2 },
-    { name: 'Barre 6th', frets: [6, 7, 7, 8, 9, -1], startFret: 6 },
+    { name: 'Barre 2nd', frets: [2, 3, 3, 4, -1, 2], startFret: 2 },
+    { name: 'Barre 6th', frets: [6, 7, 7, 8, -1, 6], startFret: 6 },
   ],
   'G_aug': [
-    { name: 'Open', frets: [3, 0, 0, 1, 2, 3], startFret: 0 },
-    { name: 'Barre 3rd', frets: [3, 3, 4, 5, 5, -1], startFret: 3 },
-    { name: 'Barre 7th', frets: [7, 8, 8, 9, 10, -1], startFret: 7 },
+    { name: 'Barre 3rd', frets: [3, 4, 4, 5, -1, 3], startFret: 3 },
+    { name: 'Barre 7th', frets: [7, 8, 8, 9, -1, 7], startFret: 7 },
   ],
   'G#_aug': [
-    { name: 'Barre 4th', frets: [4, 4, 5, 6, 6, -1], startFret: 4 },
-    { name: 'Barre 8th', frets: [8, 9, 9, 10, 11, -1], startFret: 8 },
+    { name: 'Barre 4th', frets: [4, 5, 5, 6, -1, 4], startFret: 4 },
+    { name: 'Barre 8th', frets: [8, 9, 9, 10, -1, 8], startFret: 8 },
   ],
   'A_aug': [
-    { name: 'Open', frets: [1, 2, 2, 3, 0, -1], startFret: 0 },
-    { name: 'Barre 5th', frets: [5, 5, 6, 7, 7, -1], startFret: 5 },
-    { name: 'Barre 9th', frets: [9, 10, 10, 11, 12, -1], startFret: 9 },
+    { name: 'Open', frets: [1, 2, 2, -1, 0, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 6, 6, 7, -1, 5], startFret: 5 },
   ],
   'A#_aug': [
-    { name: 'Barre 1st', frets: [2, 3, 3, 4, 1, -1], startFret: 1 },
-    { name: 'Barre 6th', frets: [6, 6, 7, 8, 8, -1], startFret: 6 },
+    { name: 'Barre 1st', frets: [2, 3, 3, -1, 1, -1], startFret: 1 },
+    { name: 'Barre 6th', frets: [6, 7, 7, 8, -1, 6], startFret: 6 },
   ],
   'B_aug': [
-    { name: 'Barre 2nd', frets: [3, 4, 4, 5, 2, -1], startFret: 2 },
-    { name: 'Barre 7th', frets: [7, 7, 8, 9, 9, -1], startFret: 7 },
+    { name: 'Barre 2nd', frets: [3, 4, 4, -1, 2, -1], startFret: 2 },
+    { name: 'Barre 7th', frets: [7, 8, 8, 9, -1, 7], startFret: 7 },
   ],
 };
