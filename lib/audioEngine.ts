@@ -88,7 +88,13 @@ export const playProgression = async (
 
   stopPlayback();
 
-  Tone.getTransport().bpm.value = bpm;
+  // BPM controls arpeggio speed: higher BPM = faster arpeggio
+  // At 60 BPM, each note is 0.25 seconds apart (quarter note)
+  // At 120 BPM, each note is 0.125 seconds apart
+  const arpeggioDelay = 60 / bpm * 0.25; // seconds between each note in arpeggio
+
+  // Fixed tempo for chord changes (one chord per bar at 60 BPM = 4 seconds per chord)
+  Tone.getTransport().bpm.value = 60;
 
   const events = chords.map((chord, index) => {
     const notes = getChordNotesForPlayback(chord);
@@ -96,21 +102,29 @@ export const playProgression = async (
       time: `${index}:0:0`,
       notes,
       chord,
+      arpeggioDelay,
     };
   });
 
   currentSequence = new Tone.Part((time, event) => {
     if (instrument === 'piano' && pianoSynth) {
-      pianoSynth.triggerAttackRelease(event.notes, '2n', time);
-    } else if (instrument === 'guitar' && guitarSynth) {
+      // Piano: play as arpeggio with BPM-controlled delay
       event.notes.forEach((note: string, i: number) => {
-        guitarSynth?.triggerAttackRelease(note, '2n', time + i * 0.03);
+        pianoSynth?.triggerAttackRelease(note, '2n', time + i * event.arpeggioDelay);
+      });
+    } else if (instrument === 'guitar' && guitarSynth) {
+      // Guitar: play as arpeggio with BPM-controlled delay
+      event.notes.forEach((note: string, i: number) => {
+        guitarSynth?.triggerAttackRelease(note, '2n', time + i * event.arpeggioDelay);
       });
     }
   }, events);
 
   currentSequence.start(0);
-  currentSequence.loop = false;
+
+  // Enable looping
+  currentSequence.loop = true;
+  currentSequence.loopEnd = `${chords.length}:0:0`;
 
   Tone.getTransport().start();
 };

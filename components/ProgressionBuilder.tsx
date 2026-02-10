@@ -25,15 +25,7 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
 
     setIsPlaying(true);
     await playProgression(progression, bpm, 'guitar');
-
-    // Calculate total duration based on BPM and number of chords
-    const beatsPerChord = 4;
-    const totalBeats = progression.length * beatsPerChord;
-    const durationMs = (totalBeats / bpm) * 60 * 1000;
-
-    setTimeout(() => {
-      setIsPlaying(false);
-    }, durationMs);
+    // Progression now loops continuously until stopped
   }, [progression, bpm]);
 
   const handleStop = useCallback(() => {
