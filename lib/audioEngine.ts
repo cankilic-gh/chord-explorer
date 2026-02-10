@@ -154,10 +154,27 @@ export const ensureAudioContext = async (): Promise<void> => {
 
 export const playChordFromChord = async (
   chord: Chord,
-  instrument: 'piano' | 'guitar' = 'guitar'
+  instrument: 'piano' | 'guitar' = 'guitar',
+  bpm: number = 120
 ): Promise<void> => {
+  await initializeAudio();
+
   const notes = getChordNotesForPlayback(chord);
-  await playChord(notes, instrument);
+  const beatDuration = 60 / bpm; // seconds per beat
+
+  if (instrument === 'piano' && pianoSynth) {
+    notes.forEach((note, i) => {
+      setTimeout(() => {
+        pianoSynth?.triggerAttackRelease(note, '2n');
+      }, i * beatDuration * 1000);
+    });
+  } else if (instrument === 'guitar' && guitarSynth) {
+    notes.forEach((note, i) => {
+      setTimeout(() => {
+        guitarSynth?.triggerAttackRelease(note, '2n');
+      }, i * beatDuration * 1000);
+    });
+  }
 };
 
 export const playNote = async (
