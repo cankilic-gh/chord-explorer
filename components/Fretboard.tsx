@@ -67,9 +67,11 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => 
 
 
         {/* Notes */}
+        {/* String order: 0=high e (bottom), 5=low E (top) - standard guitar diagram */}
         <div className="absolute top-0 left-0 right-0 bottom-0">
             {voicing.map((pos, i) => {
-                const top = `${(pos.string / (STRING_COUNT - 1)) * 100}%`;
+                // Flip string order: string 0 (high e) at bottom, string 5 (low E) at top
+                const top = `${((STRING_COUNT - 1 - pos.string) / (STRING_COUNT - 1)) * 100}%`;
                 const left = pos.fret === 0 ? `-1.5%` : `${((pos.fret - 0.5) / FRET_COUNT) * 100}%`;
                 const dotColor = INTERVAL_COLORS[pos.interval] || DEFAULT_DOT_COLOR;
 

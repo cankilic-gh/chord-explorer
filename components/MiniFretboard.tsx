@@ -33,10 +33,12 @@ const MiniFretboard: React.FC<MiniFretboardProps> = ({ voicing }) => {
         </div>
 
         {/* Notes */}
+        {/* String order: 0=high e (right), 5=low E (left) - standard chord diagram */}
         <div className="absolute top-0 left-0 right-0 bottom-0">
           {voicing.filter(pos => pos.fret <= FRET_COUNT).map((pos, i) => {
             const top = pos.fret === 0 ? '-15%' : `${((pos.fret - 0.5) / FRET_COUNT) * 100}%`;
-            const left = `${(pos.string / (STRING_COUNT - 1)) * 100}%`;
+            // Flip string order: string 0 (high e) at right, string 5 (low E) at left
+            const left = `${((STRING_COUNT - 1 - pos.string) / (STRING_COUNT - 1)) * 100}%`;
             
             return (
               <div
