@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { NoteWithInterval, Note } from '../constants/musicData';
+import { playNote } from '../lib/audioEngine';
 
 interface PianoProps {
   notes: NoteWithInterval[];
@@ -36,6 +37,8 @@ const INTERVAL_COLORS: Record<string, string> = {
 };
 
 const Piano: React.FC<PianoProps> = ({ notes }) => {
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+
   const noteMap = new Map<Note, NoteWithInterval>();
   notes.forEach(n => noteMap.set(n.note, n));
 
@@ -46,21 +49,36 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
     return INTERVAL_COLORS[interval] || '#888888';
   };
 
+  const handleKeyPress = useCallback(async (note: string, octave: number) => {
+    const keyId = `${note}${octave}`;
+    setPressedKey(keyId);
+    await playNote(note, octave);
+    setTimeout(() => setPressedKey(null), 150);
+  }, []);
+
   return (
     <div className="relative w-full h-28 md:h-40 bg-[#161b22] border border-[#30363d] rounded-lg p-2 md:p-4 select-none overflow-x-auto">
       <div className="relative h-full flex min-w-[500px] md:min-w-0">
         {whiteKeys.map((key, index) => {
           const noteInfo = noteMap.get(key.note as Note);
           const color = noteInfo ? getIntervalColor(noteInfo.interval) : '';
+          const keyId = `${key.note}${key.octave}`;
+          const isPressed = pressedKey === keyId;
           return (
-            <div key={`${key.note}${key.octave}-${index}`} className="relative h-full flex-1 border border-[#30363d] bg-[#c9d1d9] rounded-b-md flex items-end justify-center pb-1 md:pb-2">
+            <div
+              key={`${key.note}${key.octave}-${index}`}
+              onClick={() => handleKeyPress(key.note, key.octave)}
+              className={`relative h-full flex-1 border border-[#30363d] rounded-b-md flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] ${
+                isPressed ? 'bg-[#a0a8b0] scale-[0.98]' : 'bg-[#c9d1d9] hover:bg-[#b8c0c8]'
+              }`}
+            >
               {noteInfo && (
                 <div
-                  className="w-4 h-4 md:w-6 md:h-6 rounded-full shadow-lg"
+                  className="w-4 h-4 md:w-6 md:h-6 rounded-full shadow-lg pointer-events-none"
                   style={{ backgroundColor: color, borderColor: color, borderWidth: '2px' }}
                 ></div>
               )}
-              <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-black font-mono font-bold">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
+              <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-black font-mono font-bold pointer-events-none">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
             </div>
           );
         })}
@@ -92,13 +110,18 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
             }
           }
 
+          const keyId = `${key.note}${key.octave}`;
+          const isPressed = pressedKey === keyId;
           return (
             <div key={`${key.note}${key.octave}-${index}`}
+                 onClick={() => handleKeyPress(key.note, key.octave)}
                  style={{ left: `${leftPosition}%`}}
-                 className="absolute top-0 w-[5%] h-2/3 bg-[#21262d] border border-[#30363d] rounded-b-md z-10 flex items-end justify-center pb-1 md:pb-2">
+                 className={`absolute top-0 w-[5%] h-2/3 border border-[#30363d] rounded-b-md z-10 flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] ${
+                   isPressed ? 'bg-[#0d1117] scale-[0.98]' : 'bg-[#21262d] hover:bg-[#2d333b]'
+                 }`}>
               {noteInfo && (
                 <div
-                  className="w-3 h-3 md:w-5 md:h-5 rounded-full shadow-lg"
+                  className="w-3 h-3 md:w-5 md:h-5 rounded-full shadow-lg pointer-events-none"
                   style={{ backgroundColor: color, borderColor: color, borderWidth: '2px' }}
                 ></div>
               )}

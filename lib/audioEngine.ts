@@ -141,3 +141,16 @@ export const playChordFromChord = async (
   const notes = getChordNotesForPlayback(chord);
   await playChord(notes, instrument);
 };
+
+export const playNote = async (
+  note: string,
+  octave: number,
+  duration: string = '8n'
+): Promise<void> => {
+  await initializeAudio();
+
+  if (pianoSynth) {
+    const noteWithOctave = `${note}${octave}`;
+    pianoSynth.triggerAttackRelease(noteWithOctave, duration);
+  }
+};
