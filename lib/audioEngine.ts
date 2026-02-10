@@ -88,34 +88,38 @@ export const playProgression = async (
 
   stopPlayback();
 
-  // BPM controls arpeggio speed: higher BPM = faster arpeggio
-  // At 60 BPM, each note is 0.25 seconds apart (quarter note)
-  // At 120 BPM, each note is 0.125 seconds apart
-  const arpeggioDelay = 60 / bpm * 0.25; // seconds between each note in arpeggio
+  // BPM controls everything - one beat = 60/bpm seconds
+  // Arpeggio: each note is one beat apart
+  // Chord change: after all notes in chord are played (based on note count)
+  Tone.getTransport().bpm.value = bpm;
 
-  // Fixed tempo for chord changes (one chord per bar at 60 BPM = 4 seconds per chord)
-  Tone.getTransport().bpm.value = 60;
-
-  const events = chords.map((chord, index) => {
+  // Calculate chord start times based on note counts
+  // Each chord starts after previous chord's notes finish (1 beat per note)
+  let currentBeat = 0;
+  const events = chords.map((chord) => {
     const notes = getChordNotesForPlayback(chord);
-    return {
-      time: `${index}:0:0`,
+    const event = {
+      time: `0:${currentBeat}:0`,
       notes,
       chord,
-      arpeggioDelay,
     };
+    // Next chord starts after this chord's notes (1 beat per note)
+    currentBeat += notes.length;
+    return event;
   });
 
+  const totalBeats = currentBeat;
+
   currentSequence = new Tone.Part((time, event) => {
+    const beatDuration = 60 / bpm; // seconds per beat
+
     if (instrument === 'piano' && pianoSynth) {
-      // Piano: play as arpeggio with BPM-controlled delay
       event.notes.forEach((note: string, i: number) => {
-        pianoSynth?.triggerAttackRelease(note, '2n', time + i * event.arpeggioDelay);
+        pianoSynth?.triggerAttackRelease(note, '2n', time + i * beatDuration);
       });
     } else if (instrument === 'guitar' && guitarSynth) {
-      // Guitar: play as arpeggio with BPM-controlled delay
       event.notes.forEach((note: string, i: number) => {
-        guitarSynth?.triggerAttackRelease(note, '2n', time + i * event.arpeggioDelay);
+        guitarSynth?.triggerAttackRelease(note, '2n', time + i * beatDuration);
       });
     }
   }, events);
@@ -124,7 +128,7 @@ export const playProgression = async (
 
   // Enable looping
   currentSequence.loop = true;
-  currentSequence.loopEnd = `${chords.length}:0:0`;
+  currentSequence.loopEnd = `0:${totalBeats}:0`;
 
   Tone.getTransport().start();
 };
