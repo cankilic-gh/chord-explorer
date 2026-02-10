@@ -1,5 +1,30 @@
 
-import { NOTES, CHORD_TYPES, GUITAR_VOICINGS, ChordType, Note, NoteWithInterval, Interval, ChordVoicing, FretPosition, Chord } from '../constants/musicData';
+import { NOTES, CHORD_TYPES, GUITAR_VOICINGS, ChordType, Note, NoteWithInterval, Interval, ChordVoicing, FretPosition, Chord, VoicingDefinition } from '../constants/musicData';
+
+export interface VoicingWithMeta {
+  name: string;
+  startFret: number;
+  voicing: ChordVoicing;
+}
+
+export interface Key {
+  root: Note;
+  mode: 'major' | 'minor';
+  chords: Chord[];
+  romanNumerals: string[];
+}
+
+export interface ChordCompatibility {
+  score: number;
+  matchingKeys: string[];
+  totalMatchingKeys: number;
+}
+
+export interface CommonProgression {
+  name: string;
+  genre: string;
+  pattern: string[];
+}
 
 const getIntervalName = (semitones: number): Interval => {
   switch (semitones) {
@@ -33,35 +58,23 @@ export const getChordNotes = (rootNote: Note, chordType: ChordType): NoteWithInt
   });
 };
 
-export const getChordVoicing = (rootNote: Note, chordType: ChordType): ChordVoicing => {
-    const key = `${rootNote}_${chordType}`;
-    const voicingFrets = GUITAR_VOICINGS[key];
-    
-    if (!voicingFrets) {
-        // Fallback for non-defined voicings - just show roots
-        return [{string: 5, fret: NOTES.indexOf(rootNote) % 12, interval: 'Root'}];
-    }
-
+const convertFretsToVoicing = (frets: number[], rootNote: Note, chordType: ChordType): ChordVoicing => {
     const chordNotes = getChordNotes(rootNote, chordType).map(n => n.note);
     const rootIndex = NOTES.indexOf(rootNote);
     const openStringNotes = ['E', 'A', 'D', 'G', 'B', 'E'].reverse(); // low E to high e
 
     const voicing: ChordVoicing = [];
-    voicingFrets.forEach((fret, stringIndex) => {
+    frets.forEach((fret, stringIndex) => {
         if (fret > -1) {
             const openStringIndex = NOTES.indexOf(openStringNotes[stringIndex] as Note);
             const noteIndex = (openStringIndex + fret) % 12;
             const note = NOTES[noteIndex];
-            
+
             const noteInChordIndex = chordNotes.indexOf(note);
             if(noteInChordIndex !== -1) {
-                const formula = CHORD_TYPES[chordType];
-                const intervalSemitones = formula.intervals[noteInChordIndex];
-                
-                // This is a simplification, true interval depends on distance from root
                 const rootDist = (noteIndex - rootIndex + 12) % 12;
                 const interval = getIntervalName(rootDist);
-                 
+
                 voicing.push({
                     string: 5 - stringIndex, // 0 for high E, 5 for low E
                     fret: fret,
@@ -72,6 +85,31 @@ export const getChordVoicing = (rootNote: Note, chordType: ChordType): ChordVoic
     });
 
     return voicing;
+};
+
+export const getAllChordVoicings = (rootNote: Note, chordType: ChordType): VoicingWithMeta[] => {
+    const key = `${rootNote}_${chordType}`;
+    const voicingDefs = GUITAR_VOICINGS[key];
+
+    if (!voicingDefs) {
+        // Fallback for non-defined voicings - return single root position
+        return [{
+            name: 'Root Position',
+            startFret: 0,
+            voicing: [{string: 5, fret: NOTES.indexOf(rootNote) % 12, interval: 'Root'}]
+        }];
+    }
+
+    return voicingDefs.map((def: VoicingDefinition) => ({
+        name: def.name,
+        startFret: def.startFret,
+        voicing: convertFretsToVoicing(def.frets, rootNote, chordType)
+    }));
+};
+
+export const getChordVoicing = (rootNote: Note, chordType: ChordType): ChordVoicing => {
+    const allVoicings = getAllChordVoicings(rootNote, chordType);
+    return allVoicings.length > 0 ? allVoicings[0].voicing : [];
 };
 
 const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
@@ -109,11 +147,11 @@ export const getRelativeChords = (rootNote: Note, chordType: ChordType): Chord[]
 
 export const getRomanNumeral = (rootNote: Note, chordType: ChordType): string => {
     // This is a simplified version. It assumes the rootNote is the tonic of the key.
-    const keyRootNote = rootNote; 
+    const keyRootNote = rootNote;
     const keyRootIndex = NOTES.indexOf(keyRootNote);
     let scaleIntervals: number[];
     let numerals: string[];
-    
+
     if (chordType.includes('minor') || chordType.includes('dim')) {
         scaleIntervals = MINOR_SCALE_INTERVALS;
         numerals = ROMAN_NUMERALS_MINOR;
@@ -121,10 +159,192 @@ export const getRomanNumeral = (rootNote: Note, chordType: ChordType): string =>
         scaleIntervals = MAJOR_SCALE_INTERVALS;
         numerals = ROMAN_NUMERALS_MAJOR;
     }
-    
+
     // Find what degree the current chord is in its OWN key
     const currentRootIndex = NOTES.indexOf(rootNote);
     const degreeIndex = scaleIntervals.indexOf((currentRootIndex - keyRootIndex + 12) % 12);
-    
+
     return degreeIndex > -1 ? numerals[degreeIndex] : '?';
+};
+
+export const getRomanNumeralInKey = (chord: Chord, keyRoot: Note, keyMode: 'major' | 'minor'): string | null => {
+    const keyRootIndex = NOTES.indexOf(keyRoot);
+    const chordRootIndex = NOTES.indexOf(chord.root);
+    const scaleIntervals = keyMode === 'major' ? MAJOR_SCALE_INTERVALS : MINOR_SCALE_INTERVALS;
+    const numerals = keyMode === 'major' ? ROMAN_NUMERALS_MAJOR : ROMAN_NUMERALS_MINOR;
+    const chordTypes = keyMode === 'major' ? MAJOR_SCALE_CHORD_TYPES : MINOR_SCALE_CHORD_TYPES;
+
+    const intervalFromRoot = (chordRootIndex - keyRootIndex + 12) % 12;
+    const degreeIndex = scaleIntervals.indexOf(intervalFromRoot);
+
+    if (degreeIndex === -1) return null;
+
+    const expectedType = chordTypes[degreeIndex];
+    const isBasicMatch = chord.type === expectedType ||
+        (chord.type === '7' && expectedType === 'Major') ||
+        (chord.type === 'm7' && expectedType === 'minor') ||
+        (chord.type === 'maj7' && expectedType === 'Major') ||
+        (chord.type === 'dim7' && expectedType === 'dim');
+
+    if (!isBasicMatch) return null;
+
+    return numerals[degreeIndex];
+};
+
+export const getAllKeys = (): Key[] => {
+    const keys: Key[] = [];
+
+    for (const root of NOTES) {
+        const rootIndex = NOTES.indexOf(root);
+
+        const majorChords = MAJOR_SCALE_INTERVALS.map((interval, index) => ({
+            root: NOTES[(rootIndex + interval) % 12] as Note,
+            type: MAJOR_SCALE_CHORD_TYPES[index],
+        }));
+        keys.push({
+            root,
+            mode: 'major',
+            chords: majorChords,
+            romanNumerals: ROMAN_NUMERALS_MAJOR,
+        });
+
+        const minorChords = MINOR_SCALE_INTERVALS.map((interval, index) => ({
+            root: NOTES[(rootIndex + interval) % 12] as Note,
+            type: MINOR_SCALE_CHORD_TYPES[index],
+        }));
+        keys.push({
+            root,
+            mode: 'minor',
+            chords: minorChords,
+            romanNumerals: ROMAN_NUMERALS_MINOR,
+        });
+    }
+
+    return keys;
+};
+
+const isChordInKey = (chord: Chord, key: Key): boolean => {
+    return key.chords.some(keyChord => {
+        if (keyChord.root !== chord.root) return false;
+
+        if (keyChord.type === chord.type) return true;
+        if (chord.type === '7' && keyChord.type === 'Major') return true;
+        if (chord.type === 'm7' && keyChord.type === 'minor') return true;
+        if (chord.type === 'maj7' && keyChord.type === 'Major') return true;
+        if (chord.type === 'dim7' && keyChord.type === 'dim') return true;
+
+        return false;
+    });
+};
+
+export const findCompatibleKeys = (chords: Chord[]): Key[] => {
+    if (chords.length === 0) return [];
+
+    const allKeys = getAllKeys();
+
+    return allKeys.filter(key =>
+        chords.every(chord => isChordInKey(chord, key))
+    );
+};
+
+export const getChordCompatibilityScore = (
+    chord: Chord,
+    selectedChords: Chord[]
+): ChordCompatibility => {
+    if (selectedChords.length === 0) {
+        return { score: 1, matchingKeys: [], totalMatchingKeys: 0 };
+    }
+
+    const compatibleKeys = findCompatibleKeys(selectedChords);
+
+    if (compatibleKeys.length === 0) {
+        return { score: 0.35, matchingKeys: [], totalMatchingKeys: 0 };
+    }
+
+    const keysWithChord = compatibleKeys.filter(key => isChordInKey(chord, key));
+
+    const matchingKeyNames = keysWithChord.map(key =>
+        `${key.root} ${key.mode}`
+    );
+
+    const score = keysWithChord.length / compatibleKeys.length;
+
+    return {
+        score,
+        matchingKeys: matchingKeyNames,
+        totalMatchingKeys: keysWithChord.length,
+    };
+};
+
+export const COMMON_PROGRESSIONS: CommonProgression[] = [
+    { name: 'Pop Progression', genre: 'Pop', pattern: ['I', 'V', 'vi', 'IV'] },
+    { name: 'Axis Progression', genre: 'Pop', pattern: ['vi', 'IV', 'I', 'V'] },
+    { name: 'Doo-Wop', genre: 'Pop', pattern: ['I', 'vi', 'IV', 'V'] },
+    { name: 'Jazz ii-V-I', genre: 'Jazz', pattern: ['ii', 'V', 'I'] },
+    { name: '12-Bar Blues (simplified)', genre: 'Blues', pattern: ['I', 'IV', 'I', 'V'] },
+    { name: 'Blues Turnaround', genre: 'Blues', pattern: ['I', 'IV', 'I', 'V'] },
+    { name: 'Andalusian Cadence', genre: 'Flamenco', pattern: ['i', 'VII', 'VI', 'V'] },
+    { name: 'Canon Progression', genre: 'Classical', pattern: ['I', 'V', 'vi', 'iii', 'IV', 'I', 'IV', 'V'] },
+    { name: 'Royal Road', genre: 'J-Pop', pattern: ['IV', 'V', 'iii', 'vi'] },
+    { name: '50s Progression', genre: 'Rock', pattern: ['I', 'vi', 'ii', 'V'] },
+];
+
+export const detectProgressionPattern = (chords: Chord[]): CommonProgression | null => {
+    if (chords.length < 3) return null;
+
+    const allKeys = getAllKeys();
+
+    for (const key of allKeys) {
+        const romanNumerals: (string | null)[] = chords.map(chord =>
+            getRomanNumeralInKey(chord, key.root, key.mode)
+        );
+
+        if (romanNumerals.some(rn => rn === null)) continue;
+
+        const progressionPattern = romanNumerals as string[];
+
+        for (const commonProg of COMMON_PROGRESSIONS) {
+            if (progressionPattern.length < commonProg.pattern.length) continue;
+
+            let matches = true;
+            for (let i = 0; i < commonProg.pattern.length; i++) {
+                const expected = commonProg.pattern[i].replace('°', '');
+                const actual = progressionPattern[i].replace('°', '');
+                if (expected.toLowerCase() !== actual.toLowerCase()) {
+                    matches = false;
+                    break;
+                }
+            }
+
+            if (matches) {
+                return commonProg;
+            }
+
+            if (progressionPattern.length >= commonProg.pattern.length) {
+                const rotations = commonProg.pattern.length;
+                for (let rot = 1; rot < rotations; rot++) {
+                    const rotatedPattern = [
+                        ...commonProg.pattern.slice(rot),
+                        ...commonProg.pattern.slice(0, rot)
+                    ];
+
+                    let rotMatches = true;
+                    for (let i = 0; i < rotatedPattern.length && i < progressionPattern.length; i++) {
+                        const expected = rotatedPattern[i].replace('°', '');
+                        const actual = progressionPattern[i].replace('°', '');
+                        if (expected.toLowerCase() !== actual.toLowerCase()) {
+                            rotMatches = false;
+                            break;
+                        }
+                    }
+
+                    if (rotMatches) {
+                        return commonProg;
+                    }
+                }
+            }
+        }
+    }
+
+    return null;
 };

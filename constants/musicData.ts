@@ -44,23 +44,123 @@ export interface FretPosition {
 
 export type ChordVoicing = FretPosition[];
 
-// A simplified map of common open or first-position chord voicings.
+export interface VoicingDefinition {
+  name: string;
+  frets: number[];
+  startFret: number;
+}
+
+// A map of common chord voicings with multiple options per chord.
 // string indices: 0: high e, 1: B, 2: G, 3: D, 4: A, 5: E
 // fret: -1 means muted/not played.
-export const GUITAR_VOICINGS: Record<string, number[]> = {
-  'C_Major': [-1, 0, 1, 0, 2, 3],
-  'G_Major': [3, 3, 0, 0, 2, 3],
-  'D_Major': [2, 3, 2, 0, -1, -1],
-  'A_Major': [0, 2, 2, 2, 0, -1],
-  'E_Major': [0, 0, 1, 2, 2, 0],
-  'F_Major': [1, 1, 2, 3, 3, 1], // Barre chord
-  'A_minor': [0, 1, 2, 2, 0, -1],
-  'E_minor': [0, 0, 0, 2, 2, 0],
-  'D_minor': [1, 3, 2, 0, -1, -1],
-  'C_7': [-1, 0, 1, 3, 2, 3],
-  'G_7': [1, 0, 0, 0, 2, 3],
-  'D_7': [2, 1, 2, 0, -1, -1],
-  'A_7': [0, 2, 0, 2, 0, -1],
-  'E_7': [0, 0, 1, 0, 2, 0],
-  'B_dim': [-1, 3, 1, 3, 2, -1],
+export const GUITAR_VOICINGS: Record<string, VoicingDefinition[]> = {
+  'C_Major': [
+    { name: 'Open', frets: [-1, 0, 1, 0, 2, 3], startFret: 0 },
+    { name: 'Barre 3rd', frets: [3, 5, 5, 5, 3, -1], startFret: 3 },
+    { name: 'Barre 8th', frets: [8, 8, 9, 10, 10, 8], startFret: 8 },
+  ],
+  'G_Major': [
+    { name: 'Open', frets: [3, 3, 0, 0, 2, 3], startFret: 0 },
+    { name: 'Barre 3rd', frets: [3, 3, 4, 5, 5, 3], startFret: 3 },
+    { name: 'Barre 10th', frets: [-1, 12, 12, 12, 10, -1], startFret: 10 },
+  ],
+  'D_Major': [
+    { name: 'Open', frets: [2, 3, 2, 0, -1, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 7, 7, 7, 5, -1], startFret: 5 },
+    { name: 'Barre 10th', frets: [10, 10, 11, 12, 12, 10], startFret: 10 },
+  ],
+  'A_Major': [
+    { name: 'Open', frets: [0, 2, 2, 2, 0, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 5, 6, 7, 7, 5], startFret: 5 },
+    { name: 'Barre 12th', frets: [-1, 14, 14, 14, 12, -1], startFret: 12 },
+  ],
+  'E_Major': [
+    { name: 'Open', frets: [0, 0, 1, 2, 2, 0], startFret: 0 },
+    { name: 'Barre 7th', frets: [7, 9, 9, 9, 7, -1], startFret: 7 },
+    { name: 'Barre 12th', frets: [12, 12, 13, 14, 14, 12], startFret: 12 },
+  ],
+  'F_Major': [
+    { name: 'Barre 1st', frets: [1, 1, 2, 3, 3, 1], startFret: 1 },
+    { name: 'Barre 8th', frets: [-1, 10, 10, 10, 8, -1], startFret: 8 },
+  ],
+  'A_minor': [
+    { name: 'Open', frets: [0, 1, 2, 2, 0, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 5, 5, 7, 7, 5], startFret: 5 },
+    { name: 'Barre 12th', frets: [-1, 13, 14, 14, 12, -1], startFret: 12 },
+  ],
+  'E_minor': [
+    { name: 'Open', frets: [0, 0, 0, 2, 2, 0], startFret: 0 },
+    { name: 'Barre 7th', frets: [-1, 8, 9, 9, 7, -1], startFret: 7 },
+    { name: 'Barre 12th', frets: [12, 12, 12, 14, 14, 12], startFret: 12 },
+  ],
+  'D_minor': [
+    { name: 'Open', frets: [1, 3, 2, 0, -1, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 6, 7, 7, 5, -1], startFret: 5 },
+    { name: 'Barre 10th', frets: [10, 10, 10, 12, 12, 10], startFret: 10 },
+  ],
+  'G_minor': [
+    { name: 'Barre 3rd', frets: [3, 3, 3, 5, 5, 3], startFret: 3 },
+    { name: 'Barre 10th', frets: [-1, 11, 12, 12, 10, -1], startFret: 10 },
+  ],
+  'C_minor': [
+    { name: 'Barre 3rd', frets: [3, 4, 5, 5, 3, -1], startFret: 3 },
+    { name: 'Barre 8th', frets: [8, 8, 8, 10, 10, 8], startFret: 8 },
+  ],
+  'F_minor': [
+    { name: 'Barre 1st', frets: [1, 1, 1, 3, 3, 1], startFret: 1 },
+    { name: 'Barre 8th', frets: [-1, 9, 10, 10, 8, -1], startFret: 8 },
+  ],
+  'B_minor': [
+    { name: 'Barre 2nd', frets: [2, 3, 4, 4, 2, -1], startFret: 2 },
+    { name: 'Barre 7th', frets: [7, 7, 7, 9, 9, 7], startFret: 7 },
+  ],
+  'C_7': [
+    { name: 'Open', frets: [-1, 0, 1, 3, 2, 3], startFret: 0 },
+    { name: 'Barre 3rd', frets: [3, 5, 3, 5, 3, -1], startFret: 3 },
+    { name: 'Barre 8th', frets: [8, 8, 9, 8, 10, 8], startFret: 8 },
+  ],
+  'G_7': [
+    { name: 'Open', frets: [1, 0, 0, 0, 2, 3], startFret: 0 },
+    { name: 'Barre 3rd', frets: [3, 3, 4, 3, 5, 3], startFret: 3 },
+    { name: 'Barre 10th', frets: [-1, 12, 10, 12, 10, -1], startFret: 10 },
+  ],
+  'D_7': [
+    { name: 'Open', frets: [2, 1, 2, 0, -1, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 7, 5, 7, 5, -1], startFret: 5 },
+    { name: 'Barre 10th', frets: [10, 10, 11, 10, 12, 10], startFret: 10 },
+  ],
+  'A_7': [
+    { name: 'Open', frets: [0, 2, 0, 2, 0, -1], startFret: 0 },
+    { name: 'Barre 5th', frets: [5, 5, 6, 5, 7, 5], startFret: 5 },
+    { name: 'Barre 12th', frets: [-1, 14, 12, 14, 12, -1], startFret: 12 },
+  ],
+  'E_7': [
+    { name: 'Open', frets: [0, 0, 1, 0, 2, 0], startFret: 0 },
+    { name: 'Barre 7th', frets: [7, 9, 7, 9, 7, -1], startFret: 7 },
+    { name: 'Barre 12th', frets: [12, 12, 13, 12, 14, 12], startFret: 12 },
+  ],
+  'B_dim': [
+    { name: 'Open', frets: [-1, 3, 1, 3, 2, -1], startFret: 0 },
+    { name: 'Barre 7th', frets: [7, 8, 7, 8, -1, -1], startFret: 7 },
+  ],
+  'F#_minor': [
+    { name: 'Barre 2nd', frets: [2, 2, 2, 4, 4, 2], startFret: 2 },
+    { name: 'Barre 9th', frets: [-1, 10, 11, 11, 9, -1], startFret: 9 },
+  ],
+  'C#_minor': [
+    { name: 'Barre 4th', frets: [4, 4, 5, 6, 6, 4], startFret: 4 },
+    { name: 'Barre 9th', frets: [9, 9, 9, 11, 11, 9], startFret: 9 },
+  ],
+  'G#_minor': [
+    { name: 'Barre 4th', frets: [4, 4, 4, 6, 6, 4], startFret: 4 },
+    { name: 'Barre 11th', frets: [-1, 12, 13, 13, 11, -1], startFret: 11 },
+  ],
+  'D#_minor': [
+    { name: 'Barre 6th', frets: [6, 6, 6, 8, 8, 6], startFret: 6 },
+    { name: 'Barre 11th', frets: [11, 11, 11, 13, 13, 11], startFret: 11 },
+  ],
+  'A#_minor': [
+    { name: 'Barre 1st', frets: [1, 2, 3, 3, 1, -1], startFret: 1 },
+    { name: 'Barre 6th', frets: [6, 6, 6, 8, 8, 6], startFret: 6 },
+  ],
 };
