@@ -15,6 +15,7 @@
 
 ### 🎵 Chord Visualization
 - **Dual Display** - See chords on both piano and guitar fretboard simultaneously
+- **Interactive Piano** - Click/tap piano keys to play individual notes
 - **Interval Colors** - Root (red), 3rd (blue), 5th (green), 7th (orange) highlighted
 - **Multiple Voicings** - Open positions, barre chords, and alternate fingerings
 - **Real-time Audio** - Hear chords played with Tone.js audio engine
@@ -40,6 +41,12 @@
 - **Progressive Filtering** - Relative chords ranked by key compatibility
 - **Compatible Keys Display** - See which keys fit your progression
 - **Voicing Persistence** - Remembers voicing when changing chord type
+
+### 📱 Mobile Responsive
+- **Touch Optimized** - Full functionality on phones and tablets
+- **Adaptive Layout** - Single column layout on mobile, 3-column on desktop
+- **Collapsible Sections** - Related chords panel toggles on mobile
+- **Horizontal Scroll** - Piano and chord selectors scroll smoothly
 
 ---
 
