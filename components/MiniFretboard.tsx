@@ -43,7 +43,7 @@ const MiniFretboard: React.FC<MiniFretboardProps> = ({ voicing }) => {
             return (
               <div
                 key={i}
-                className={`absolute w-2.5 h-2.5 rounded-full ${pos.fret === 0 ? 'border border-white' : 'bg-white'} transform -translate-x-1/2 -translate-y-1/2`}
+                className={`absolute w-[0.3rem] h-[0.3rem] rounded-full ${pos.fret === 0 ? 'border border-white' : 'bg-white'} transform -translate-x-1/2 -translate-y-1/2`}
                 style={{ top, left }}
               ></div>
             );
