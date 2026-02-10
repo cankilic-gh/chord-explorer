@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { NoteWithInterval, Note } from '../constants/musicData';
-import { playNote } from '../lib/audioEngine';
+import { playNote, ensureAudioContext } from '../lib/audioEngine';
 
 interface PianoProps {
   notes: NoteWithInterval[];
@@ -52,6 +52,8 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
   const handleKeyPress = useCallback(async (note: string, octave: number) => {
     const keyId = `${note}${octave}`;
     setPressedKey(keyId);
+    // Ensure audio context is started (required for mobile)
+    await ensureAudioContext();
     await playNote(note, octave);
     setTimeout(() => setPressedKey(null), 150);
   }, []);

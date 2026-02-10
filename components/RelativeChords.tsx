@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { Chord, CHORD_TYPES, Note, ChordType } from '../constants/musicData';
 import { getChordVoicing, getRomanNumeral, getChordCompatibilityScore, detectProgressionPattern, findCompatibleKeys, ChordCompatibility, CommonProgression, Key } from '../lib/musicTheory';
-import { playChordFromChord } from '../lib/audioEngine';
+import { playChordFromChord, ensureAudioContext } from '../lib/audioEngine';
 import MiniFretboard from './MiniFretboard';
 import { PlusCircleIcon } from './icons/PlusCircleIcon';
 
@@ -146,17 +146,24 @@ interface ChordCardProps {
     compact?: boolean;
 }
 
-const PlayButton: React.FC<{ onClick: (e: React.MouseEvent) => void }> = ({ onClick }) => (
-  <button
-    onClick={onClick}
-    className="w-6 h-6 flex items-center justify-center rounded-full bg-[#3fb950] hover:bg-green-600 transition-colors"
-    title="Play chord"
-  >
-    <svg width="10" height="12" viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0 0V12L10 6L0 0Z" fill="white" />
-    </svg>
-  </button>
-);
+const PlayButton: React.FC<{ onClick: (e: React.MouseEvent) => void; size?: 'sm' | 'md' }> = ({ onClick, size = 'md' }) => {
+  const sizeClasses = size === 'sm'
+    ? 'w-8 h-8'
+    : 'w-10 h-10';
+  const iconSize = size === 'sm' ? { width: 10, height: 12 } : { width: 12, height: 14 };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`${sizeClasses} flex items-center justify-center rounded-full bg-[#238636] hover:bg-[#2ea043] active:scale-95 transition-all shadow-lg shadow-[#238636]/30`}
+      title="Play chord"
+    >
+      <svg width={iconSize.width} height={iconSize.height} viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 0V12L10 6L0 0Z" fill="white" />
+      </svg>
+    </button>
+  );
+};
 
 const CheckIcon: React.FC = () => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -180,8 +187,10 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
     const voicing = getChordVoicing(chord.root, chord.type);
     const romanNumeral = getRomanNumeral(chord.root, chord.type);
 
-    const handlePlay = (e: React.MouseEvent) => {
+    const handlePlay = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        // Ensure audio context is started (required for mobile)
+        await ensureAudioContext();
         playChordFromChord(chord, 'guitar');
     };
 
@@ -216,30 +225,25 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
     if (compact) {
         return (
             <div
-                className={`group ${bgClass} border ${borderClass} rounded-lg p-2 transition-all duration-200 active:border-[#4493f8] relative ${opacityClass}`}
+                className={`group ${bgClass} border ${borderClass} rounded-lg p-2 transition-all duration-200 active:border-[#4493f8] relative ${opacityClass} ${isSelected ? 'border-l-4 border-l-[#4493f8]' : ''}`}
                 onClick={onSelect}
             >
                 {isGold && <GoldBadge />}
-                {isSelected && (
-                    <div className="absolute top-1 left-1 flex items-center justify-center w-4 h-4 rounded-full bg-[#4493f8]/20">
-                        <CheckIcon />
-                    </div>
-                )}
                 {isInProgression && !isSelected && (
-                    <div className="absolute top-1 left-1">
+                    <div className="absolute top-1 right-1">
                         <ProgressionDot />
                     </div>
                 )}
                 <div className="flex items-center gap-2">
                     <div className="flex-1 min-w-0">
-                        <p className="font-bold font-mono text-sm truncate">{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
+                        <p className={`font-bold font-mono text-sm truncate ${isSelected ? 'text-[#4493f8]' : ''}`}>{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
                         <p className="text-xs text-[#8b949e] font-mono">{romanNumeral}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                        <PlayButton onClick={handlePlay} />
+                    <div className="flex items-center gap-2">
+                        <PlayButton onClick={handlePlay} size="sm" />
                         <button
                             onClick={(e) => { e.stopPropagation(); onAdd(); }}
-                            className="text-[#8b949e] hover:text-[#4493f8]"
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-[#21262d] hover:bg-[#30363d] active:scale-95 transition-all"
                             title="Add to progression"
                         >
                             <PlusCircleIcon />
@@ -253,43 +257,38 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
     // Desktop full layout
     return (
         <div
-            className={`group ${bgClass} border ${borderClass} rounded-lg p-3 transition-all duration-200 hover:border-[#4493f8] hover:shadow-lg hover:bg-[#161b22] relative ${opacityClass}`}
+            className={`group ${bgClass} border ${borderClass} rounded-lg p-3 transition-all duration-200 hover:border-[#4493f8] hover:shadow-lg hover:bg-[#161b22] relative ${opacityClass} ${isSelected ? 'border-l-4 border-l-[#4493f8] bg-[#4493f8]/5' : ''}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
             {isGold && <GoldBadge />}
-            {isSelected && (
-                <div className="absolute top-2 left-2 flex items-center justify-center w-5 h-5 rounded-full bg-[#4493f8]/20">
-                    <CheckIcon />
-                </div>
-            )}
             {isInProgression && !isSelected && (
                 <div className="absolute top-2 left-2">
                     <ProgressionDot />
                 </div>
             )}
-            <div className="flex items-center space-x-4 cursor-pointer" onClick={onSelect}>
+            <div className="flex items-center cursor-pointer" onClick={onSelect}>
                 <MiniFretboard voicing={voicing} />
-                <div className="flex items-center space-x-2">
-                    <div>
-                        <p className="font-bold font-mono text-lg">{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
-                        <p className="text-sm text-[#8b949e] font-mono">{romanNumeral}</p>
-                        {compatibilityRank && matchingKeysCount !== undefined && matchingKeysCount > 0 && (
-                            <p className="text-xs text-[#8b949e]/70 font-mono">
-                                {matchingKeysCount} key{matchingKeysCount > 1 ? 's' : ''}
-                            </p>
-                        )}
-                    </div>
+                <div className="flex-1 ml-3">
+                    <p className={`font-bold font-mono text-lg ${isSelected ? 'text-[#4493f8]' : ''}`}>{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
+                    <p className="text-sm text-[#8b949e] font-mono">{romanNumeral}</p>
+                    {compatibilityRank && matchingKeysCount !== undefined && matchingKeysCount > 0 && (
+                        <p className="text-xs text-[#8b949e]/70 font-mono">
+                            {matchingKeysCount} key{matchingKeysCount > 1 ? 's' : ''}
+                        </p>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
                     <PlayButton onClick={handlePlay} />
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onAdd(); }}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#21262d] hover:bg-[#30363d] active:scale-95 transition-all opacity-0 group-hover:opacity-100"
+                        title="Add to progression"
+                    >
+                        <PlusCircleIcon />
+                    </button>
                 </div>
             </div>
-            <button
-                onClick={(e) => { e.stopPropagation(); onAdd(); }}
-                className="absolute top-2 right-2 text-[#8b949e] opacity-0 group-hover:opacity-100 transition-opacity hover:text-[#4493f8]"
-                title="Add to progression"
-            >
-                <PlusCircleIcon />
-            </button>
         </div>
     );
 }
