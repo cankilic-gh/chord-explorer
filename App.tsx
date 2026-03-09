@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
+import { Play, LayoutGrid, Circle as CircleIcon, Volume2, Info } from 'lucide-react';
 import ChordSelector from './components/ChordSelector';
 import Piano from './components/Piano';
 import Fretboard from './components/Fretboard';
@@ -9,6 +10,7 @@ import CircleOfFifths from './components/CircleOfFifths';
 import CAGEDView from './components/CAGEDView';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
 import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
+import { playChordFromChord, ensureAudioContext } from './lib/audioEngine';
 
 const App: React.FC = () => {
   const [rootNote, setRootNote] = useState<Note>('A');
@@ -81,55 +83,61 @@ const App: React.FC = () => {
     setRootNote(key);
     setChordType(isMinor ? 'minor' : 'Major');
   }
-  
+
+  const handlePlayChord = async () => {
+    await ensureAudioContext();
+    playChordFromChord(selectedChord, 'guitar');
+  };
+
   const TheoryNote: React.FC<{ chord: AppChord }> = ({ chord }) => {
     const roman = getRomanNumeral(chord.root, chord.type);
     const notes = getChordNotes(chord.root, chord.type).map(n => n.note).join(', ');
     return (
-      <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 mt-4 text-sm text-[#8b949e]">
-        <h3 className="font-bold text-base text-[#c9d1d9] font-mono">{chord.root}{CHORD_TYPES[chord.type].symbol} ({roman})</h3>
-        <p className="mt-2">
-          The {chord.root} {chord.type} chord consists of the notes: <span className="font-mono text-[#4493f8]">{notes}</span>.
-          It serves as the '{roman}' chord in its relative major key.
-          This chord has a {chord.type === 'minor' ? 'somber, melancholic' : 'bright, happy'} quality.
-        </p>
+      <div className="bg-purple/10 border border-purple/20 rounded-lg p-5 mt-6 flex gap-4">
+        <div className="mt-0.5">
+          <Info className="w-5 h-5 text-purple" />
+        </div>
+        <div>
+          <h4 className="text-sm font-semibold text-purple mb-1">Theory Note</h4>
+          <p className="text-sm text-white/70 leading-relaxed">
+            <span className="font-mono text-cyan">{chord.root}{CHORD_TYPES[chord.type].symbol}</span> ({roman}) consists of the notes: <span className="font-mono text-cyan">{notes}</span>.
+            It serves as the '{roman}' chord in its relative major key.
+            This chord has a {chord.type === 'minor' ? 'somber, melancholic' : 'bright, happy'} quality.
+          </p>
+        </div>
       </div>
     );
   };
 
   return (
-    <div className="bg-[#0d1117] text-[#c9d1d9] min-h-screen flex flex-col">
-      <header className="p-3 md:p-4 border-b border-[#30363d] flex items-center justify-between">
-        <div className="hidden lg:block w-[140px]"></div>
-        <h1 className="text-lg md:text-2xl font-bold font-mono">Chord Explorer</h1>
-        <div className="flex gap-1 md:gap-2">
+    <div className="bg-bg-dark text-white min-h-screen flex flex-col">
+      <header className="h-16 border-b border-white/10 bg-bg-dark/80 backdrop-blur-md flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan to-purple flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.3)]">
+            <Play className="w-4 h-4 text-white ml-0.5" fill="currentColor" />
+          </div>
+          <h1 className="text-lg md:text-xl font-bold tracking-wider text-white">CHORD EXPLORER</h1>
+        </div>
+        <div className="flex gap-2 md:gap-3">
           <button
             onClick={() => setShowCAGED(true)}
-            className="p-2 md:px-4 md:py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg text-sm font-mono transition-colors flex items-center gap-1 md:gap-2"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <line x1="3" y1="9" x2="21" y2="9" />
-              <line x1="9" y1="3" x2="9" y2="21" />
-            </svg>
+            <LayoutGrid className="w-4 h-4 text-cyan" />
             <span className="hidden md:inline">CAGED</span>
           </button>
           <button
             onClick={() => setShowCircleOfFifths(true)}
-            className="p-2 md:px-4 md:py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg text-sm font-mono transition-colors flex items-center gap-1 md:gap-2"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <circle cx="12" cy="12" r="6" />
-              <circle cx="12" cy="12" r="2" />
-            </svg>
+            <CircleIcon className="w-4 h-4 text-purple" />
             <span className="hidden md:inline">Circle of Fifths</span>
           </button>
         </div>
       </header>
       <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
         {/* Left Sidebar - Hidden on mobile, shown on lg */}
-        <aside className="hidden lg:block w-[240px] flex-shrink-0 bg-[#161b22] border-r border-[#30363d] p-4 overflow-y-auto">
+        <aside className="hidden lg:block w-72 flex-shrink-0 border-r border-white/10 p-6 overflow-y-auto bg-bg-dark/50">
           <ChordSelector
             selectedRoot={rootNote}
             selectedType={chordType}
@@ -139,7 +147,7 @@ const App: React.FC = () => {
         </aside>
 
         {/* Mobile Chord Selector - Only shown on mobile */}
-        <div className="lg:hidden bg-[#161b22] border-b border-[#30363d] p-3">
+        <div className="lg:hidden border-b border-white/10 p-3 bg-bg-dark/50">
           <ChordSelector
             selectedRoot={rootNote}
             selectedType={chordType}
@@ -149,22 +157,59 @@ const App: React.FC = () => {
           />
         </div>
 
-        <main className="flex-1 flex flex-col p-3 md:p-4 overflow-y-auto pb-32 lg:pb-28">
+        <main className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto pb-36 lg:pb-32 bg-bg-dark">
           <div className="w-full max-w-5xl mx-auto">
-            <Piano notes={chordNotes} />
-            <div className={`flex items-center gap-2 mb-3 mt-3 md:mt-4 h-10 transition-opacity overflow-x-auto ${hoveredChord ? 'opacity-40' : ''}`}>
-              <span className="text-xs md:text-sm text-[#8b949e] font-mono whitespace-nowrap">Voicing:</span>
-              {allVoicings.length > 1 ? (
-                <div className="flex gap-1">
-                  {allVoicings.map((voicing, index) => (
+            {/* Chord Title Area */}
+            <div className="mb-8 flex items-end justify-between">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight flex items-center gap-3">
+                  {rootNote}{CHORD_TYPES[chordType].symbol}
+                  <span className="text-lg md:text-xl font-normal text-white/50 font-mono">
+                    ({rootNote} {chordType})
+                  </span>
+                </h2>
+                <p className="text-white/60 mt-2 text-sm">
+                  {chordType === 'minor' ? 'A minor chord with a somber, melancholic quality.' :
+                   chordType === 'Major' ? 'A major chord with a bright, uplifting quality.' :
+                   chordType === 'm7' ? 'A minor chord with an added minor seventh.' :
+                   chordType === 'M7' ? 'A major chord with an added major seventh.' :
+                   chordType === '7' ? 'A dominant seventh chord with a strong pull to resolve.' :
+                   chordType === 'dim' ? 'A diminished chord with a tense, unstable quality.' :
+                   chordType === 'aug' ? 'An augmented chord with a bright, suspended quality.' :
+                   `The ${rootNote} ${chordType} chord.`}
+                </p>
+              </div>
+              <button
+                onClick={handlePlayChord}
+                className="w-12 h-12 rounded-full bg-cyan/10 text-cyan border border-cyan/30 flex items-center justify-center hover:bg-cyan/20 transition-colors"
+              >
+                <Volume2 className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Piano */}
+            <div className="mb-10">
+              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">Piano View</h3>
+              <Piano notes={chordNotes} />
+            </div>
+
+            {/* Voicing Selector */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest">Guitar Voicings</h3>
+                <span className="text-xs text-white/40 font-mono">{allVoicings.length} variation{allVoicings.length !== 1 ? 's' : ''} found</span>
+              </div>
+              <div className={`flex gap-2 overflow-x-auto pb-2 transition-opacity ${hoveredChord ? 'opacity-40' : ''}`}>
+                {allVoicings.length > 1 ? (
+                  allVoicings.map((voicing, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedVoicingIndex(index)}
                       disabled={!!hoveredChord}
-                      className={`px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-mono rounded-md transition-all whitespace-nowrap ${
+                      className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-all border ${
                         currentVoicingIndex === index
-                          ? 'bg-[#238636] text-white border border-[#238636]'
-                          : 'bg-[#21262d] text-[#c9d1d9] border border-[#30363d] hover:bg-[#30363d] hover:border-[#8b949e]'
+                          ? 'bg-cyan/20 border-cyan text-cyan shadow-[0_0_10px_rgba(0,212,255,0.2)]'
+                          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
                       } ${hoveredChord ? 'cursor-not-allowed' : ''}`}
                     >
                       {voicing.name}
@@ -172,18 +217,20 @@ const App: React.FC = () => {
                         <span className="ml-1 text-xs opacity-70">({voicing.startFret}fr)</span>
                       )}
                     </button>
-                  ))}
-                </div>
-              ) : (
-                <span className="text-xs md:text-sm text-[#8b949e] font-mono">{allVoicings[0]?.name || 'Default'}</span>
-              )}
-              {hoveredChord && (
-                <span className="ml-2 text-xs text-[#8b949e] italic">Preview</span>
-              )}
+                  ))
+                ) : (
+                  <span className="text-sm text-white/50 font-mono">{allVoicings[0]?.name || 'Default'}</span>
+                )}
+                {hoveredChord && (
+                  <span className="ml-2 text-xs text-white/50 italic self-center">Preview</span>
+                )}
+              </div>
             </div>
+
+            {/* Fretboard */}
             <Fretboard voicing={displayVoicing} isPreview={hoveredChord !== null} />
 
-            {/* Mobile Theory Note - smaller */}
+            {/* Theory Note - hidden on small mobile */}
             <div className="hidden md:block">
               <TheoryNote chord={selectedChord} />
             </div>
@@ -191,7 +238,7 @@ const App: React.FC = () => {
             {/* Mobile Relative Chords Toggle */}
             <button
               onClick={() => setShowRelativeChords(!showRelativeChords)}
-              className="lg:hidden w-full mt-4 p-3 bg-[#161b22] border border-[#30363d] rounded-lg flex items-center justify-between font-mono text-sm"
+              className="lg:hidden w-full mt-6 p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between font-mono text-sm hover:bg-white/10 transition-colors"
             >
               <span>Related Chords ({relativeChords.length})</span>
               <svg
@@ -209,7 +256,7 @@ const App: React.FC = () => {
 
             {/* Mobile Relative Chords - Collapsible */}
             {showRelativeChords && (
-              <div className="lg:hidden mt-3 bg-[#161b22] border border-[#30363d] rounded-lg p-3">
+              <div className="lg:hidden mt-3 bg-white/5 border border-white/10 rounded-lg p-3">
                 <RelativeChords
                   chords={relativeChords}
                   selectedChord={selectedChord}
@@ -225,7 +272,7 @@ const App: React.FC = () => {
         </main>
 
         {/* Right Sidebar - Hidden on mobile */}
-        <aside className="hidden lg:block w-[280px] flex-shrink-0 bg-[#161b22] border-l border-[#30363d] p-4 overflow-y-auto">
+        <aside className="hidden lg:block w-80 flex-shrink-0 border-l border-white/10 bg-bg-dark/80 backdrop-blur-md p-6 overflow-y-auto pb-32">
           <RelativeChords
             chords={relativeChords}
             selectedChord={selectedChord}
@@ -255,7 +302,6 @@ const App: React.FC = () => {
           rootNote={rootNote}
           chordType={chordType}
           onSelectShape={(shape) => {
-            // CAGED shape selected - for now just close, later can update main voicing
             console.log('Selected CAGED shape:', shape.name, 'at fret', shape.fret);
           }}
           onClose={() => setShowCAGED(false)}
