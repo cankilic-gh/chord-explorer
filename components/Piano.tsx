@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { NoteWithInterval, Note } from '../constants/musicData';
 import { playNote, ensureAudioContext } from '../lib/audioEngine';
 
@@ -37,11 +37,14 @@ const INTERVAL_COLORS: Record<string, string> = {
 const Piano: React.FC<PianoProps> = ({ notes }) => {
   const [pressedKey, setPressedKey] = useState<string | null>(null);
 
-  const noteMap = new Map<Note, NoteWithInterval>();
-  notes.forEach(n => noteMap.set(n.note, n));
+  const noteMap = useMemo(() => {
+    const map = new Map<Note, NoteWithInterval>();
+    notes.forEach(n => map.set(n.note, n));
+    return map;
+  }, [notes]);
 
-  const whiteKeys = PIANO_KEYS.filter(k => k.type === 'white');
-  const blackKeys = PIANO_KEYS.filter(k => k.type === 'black');
+  const whiteKeys = useMemo(() => PIANO_KEYS.filter(k => k.type === 'white'), []);
+  const blackKeys = useMemo(() => PIANO_KEYS.filter(k => k.type === 'black'), []);
 
   const getIntervalColor = (interval: string): string => {
     return INTERVAL_COLORS[interval] || '#888888';

@@ -4,7 +4,7 @@ import { Chord, CHORD_TYPES, Note, ChordType } from '../constants/musicData';
 import { getChordVoicing, getRomanNumeral, getChordCompatibilityScore, detectProgressionPattern, findCompatibleKeys, ChordCompatibility, CommonProgression, Key } from '../lib/musicTheory';
 import { playChordFromChord, ensureAudioContext } from '../lib/audioEngine';
 import MiniFretboard from './MiniFretboard';
-import { Volume2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface RelativeChordsProps {
   chords: Chord[];
@@ -33,13 +33,13 @@ interface ChordWithCompatibility {
 }
 
 const ProgressionPatternBadge: React.FC<{ pattern: CommonProgression }> = ({ pattern }) => (
-  <div className="mb-4 p-3 bg-green/10 border border-green/30 rounded-lg flex items-center gap-3">
-    <div className="w-8 h-8 rounded-full bg-green/20 flex items-center justify-center flex-shrink-0">
-      <span className="text-sm">&#10024;</span>
+  <div className="mb-4 p-3 bg-green/10 border border-green/20 rounded-lg flex items-center gap-3">
+    <div className="w-7 h-7 rounded-full bg-green/20 flex items-center justify-center flex-shrink-0">
+      <span className="text-xs">&#10024;</span>
     </div>
     <div>
-      <p className="text-sm font-bold text-green">{pattern.name}</p>
-      <p className="text-xs text-green/70 font-mono">
+      <p className="text-sm font-semibold text-green">{pattern.name}</p>
+      <p className="text-xs text-green/60 font-mono">
         {pattern.pattern.join(' - ')}
       </p>
     </div>
@@ -53,16 +53,16 @@ const CompatibleKeysBadge: React.FC<{ keys: Key[] }> = ({ keys }) => {
   const remaining = keys.length - displayKeys.length;
 
   return (
-    <div className="mb-4">
-      <h2 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Compatible Keys</h2>
-      <div className="flex flex-wrap gap-2">
+    <div className="mb-4 p-2.5 bg-white/[0.03] border border-white/[0.06] rounded-lg">
+      <p className="text-[10px] text-white/40 mb-1.5 uppercase tracking-wider">Compatible keys</p>
+      <div className="flex flex-wrap gap-1.5">
         {displayKeys.map((key, i) => (
-          <span key={i} className="text-xs px-2 py-1 bg-white/10 text-white/80 rounded font-mono">
+          <span key={i} className="text-xs px-2 py-0.5 bg-white/[0.06] text-white/70 rounded font-mono">
             {key.root} {key.mode}
           </span>
         ))}
         {remaining > 0 && (
-          <span className="text-xs px-2 py-1 bg-transparent border border-white/10 text-white/40 rounded font-mono">+{remaining} more</span>
+          <span className="text-xs px-2 py-0.5 text-white/30 font-mono">+{remaining}</span>
         )}
       </div>
     </div>
@@ -112,7 +112,7 @@ const RelativeChords: React.FC<RelativeChordsProps> = ({ chords, selectedChord, 
         <CompatibleKeysBadge keys={compatibleKeys} />
       )}
 
-      <div className={compact ? "grid grid-cols-2 gap-2" : "flex flex-col gap-3"}>
+      <div className={compact ? "grid grid-cols-2 gap-2" : "space-y-2"}>
         {sortedChords.map(({ chord, compatibility, rank }, index) => {
           const isSelected = isChordEqual(chord, selectedChord);
           const isInProgression = progression.some(p => isChordEqual(p, chord));
@@ -148,37 +148,6 @@ interface ChordCardProps {
     compact?: boolean;
 }
 
-const PlayButton: React.FC<{ onClick: (e: React.MouseEvent) => void; size?: 'sm' | 'md' }> = ({ onClick, size = 'md' }) => {
-  const sizeClasses = size === 'sm'
-    ? 'w-8 h-8'
-    : 'w-10 h-10';
-  const iconSize = size === 'sm' ? { width: 10, height: 12 } : { width: 12, height: 14 };
-
-  return (
-    <button
-      onClick={onClick}
-      className={`${sizeClasses} flex items-center justify-center rounded-full bg-green hover:bg-green/80 active:scale-95 transition-all`}
-      title="Play chord"
-    >
-      <svg width={iconSize.width} height={iconSize.height} viewBox="0 0 10 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 0V12L10 6L0 0Z" fill="white" />
-      </svg>
-    </button>
-  );
-};
-
-const GoldBadge: React.FC = () => (
-    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg" title="Appears in all compatible keys">
-        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 0L5.09 2.76L8 3.09L5.82 5.09L6.47 8L4 6.5L1.53 8L2.18 5.09L0 3.09L2.91 2.76L4 0Z" fill="white" />
-        </svg>
-    </div>
-);
-
-const ProgressionDot: React.FC = () => (
-  <div className="w-2 h-2 rounded-full bg-green" title="In progression" />
-);
-
 const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgression, compatibilityRank, matchingKeysCount, onSelect, onAdd, onHover, compact = false }) => {
     const voicing = getChordVoicing(chord.root, chord.type);
     const romanNumeral = getRomanNumeral(chord.root, chord.type);
@@ -200,87 +169,97 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
     const isGold = compatibilityRank === 'gold';
     const isDimmed = compatibilityRank === 'dimmed';
 
-    const borderClass = isGold
-        ? 'border-yellow-500/70'
-        : isSelected
-        ? 'border-cyan/50'
-        : isInProgression
-        ? 'border-green/30'
-        : 'border-white/10';
-
-    const bgClass = isGold
-        ? 'bg-gradient-to-r from-yellow-900/10 to-bg-dark'
-        : isSelected
-        ? 'bg-white/5'
-        : 'bg-white/[0.03]';
-
     const opacityClass = isDimmed ? 'opacity-35' : '';
 
     // Compact mobile layout
     if (compact) {
         return (
             <div
-                className={`group ${bgClass} border ${borderClass} rounded-lg p-2 transition-all duration-200 active:border-cyan relative ${opacityClass} ${isSelected ? 'border-l-4 border-l-cyan' : ''}`}
+                className={`group bg-white/[0.03] border border-white/[0.06] rounded-lg p-2.5 transition-all duration-150 active:bg-white/[0.06] relative ${opacityClass} ${isSelected ? 'bg-cyan/5 border-l-2 border-l-cyan' : ''}`}
                 onClick={onSelect}
             >
-                {isGold && <GoldBadge />}
-                {isInProgression && !isSelected && (
-                    <div className="absolute top-1 right-1">
-                        <ProgressionDot />
+                {isInProgression && (
+                    <div className="absolute top-1.5 right-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green" />
                     </div>
                 )}
                 <div className="flex items-center gap-2">
                     <div className="flex-1 min-w-0">
-                        <p className={`font-bold font-mono text-sm truncate ${isSelected ? 'text-cyan' : ''}`}>{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
-                        <p className="text-xs text-white/50 font-mono">{romanNumeral}</p>
+                        <div className="flex items-center gap-1.5">
+                            <p className={`font-bold font-mono text-sm ${isSelected ? 'text-cyan' : 'text-white'}`}>{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
+                            {isGold && <span className="text-gold text-[10px]">&#9733;</span>}
+                        </div>
+                        <p className="text-[11px] text-white/40 font-mono">{romanNumeral}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <PlayButton onClick={handlePlay} size="sm" />
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onAdd(); }}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all"
-                            title="Add to progression"
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
-                    </div>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onAdd(); }}
+                        className="w-7 h-7 flex items-center justify-center rounded bg-white/[0.06] hover:bg-white/10 active:scale-95 transition-all text-white/40 hover:text-white/70"
+                        title="Add to progression"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                    </button>
                 </div>
             </div>
         );
     }
 
-    // Desktop full layout - OLD style: MiniFretboard | name + roman | play + add
+    // Desktop layout: MiniFretboard | name + roman | hover actions
     return (
         <div
-            className={`group ${bgClass} border ${borderClass} rounded-lg p-3 transition-all duration-200 hover:border-cyan/40 hover:bg-white/5 relative ${opacityClass} ${isSelected ? 'border-l-4 border-l-cyan bg-cyan/5' : ''}`}
+            className={`group relative rounded-lg transition-all duration-150 cursor-pointer ${opacityClass} ${
+              isSelected
+                ? 'bg-cyan/5 border-l-2 border-l-cyan pl-2.5 pr-3 py-2.5'
+                : 'hover:bg-white/[0.04] px-3 py-2.5'
+            }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            onClick={onSelect}
         >
-            {isGold && <GoldBadge />}
+            {/* Gold star indicator */}
+            {isGold && (
+                <div className="absolute top-1.5 right-1.5 text-gold text-[10px]">&#9733;</div>
+            )}
+
+            {/* Progression indicator */}
             {isInProgression && !isSelected && (
-                <div className="absolute top-2 left-2">
-                    <ProgressionDot />
+                <div className="absolute top-1.5 right-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green" />
                 </div>
             )}
-            <div className="flex items-center cursor-pointer" onClick={onSelect}>
+
+            <div className="flex items-center">
                 <MiniFretboard voicing={voicing} />
-                <div className="flex-1 ml-3">
-                    <p className={`font-bold font-mono text-lg ${isSelected ? 'text-cyan' : ''}`}>{chord.root}{CHORD_TYPES[chord.type].symbol}</p>
-                    <p className="text-sm text-white/50 font-mono">{romanNumeral}</p>
-                    {compatibilityRank && matchingKeysCount !== undefined && matchingKeysCount > 0 && (
-                        <p className="text-xs text-white/30 font-mono">
-                            {matchingKeysCount} key{matchingKeysCount > 1 ? 's' : ''}
-                        </p>
-                    )}
+                <div className="flex-1 ml-3 min-w-0">
+                    <p className={`font-bold font-mono ${isSelected ? 'text-cyan' : 'text-white'}`}>
+                      {chord.root}{CHORD_TYPES[chord.type].symbol}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs text-white/40 font-mono">{romanNumeral}</p>
+                        {matchingKeysCount !== undefined && matchingKeysCount > 0 && (
+                            <p className="text-[10px] text-white/25 font-mono">
+                                {matchingKeysCount} key{matchingKeysCount > 1 ? 's' : ''}
+                            </p>
+                        )}
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <PlayButton onClick={handlePlay} />
+
+                {/* Hover actions */}
+                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={handlePlay}
+                        className="w-7 h-7 flex items-center justify-center rounded bg-white/[0.06] hover:bg-white/10 transition-colors text-white/50 hover:text-white"
+                        title="Play chord"
+                    >
+                        <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                            <path d="M0 0V12L10 6L0 0Z" fill="currentColor" />
+                        </svg>
+                    </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onAdd(); }}
-                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all opacity-0 group-hover:opacity-100"
+                        className="w-7 h-7 flex items-center justify-center rounded bg-white/[0.06] hover:bg-white/10 transition-colors text-white/50 hover:text-white"
                         title="Add to progression"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-3.5 h-3.5" />
                     </button>
                 </div>
             </div>
