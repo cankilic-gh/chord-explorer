@@ -73,8 +73,8 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
             >
               {noteInfo && (
                 <div
-                  className="w-4 h-4 md:w-5 md:h-5 rounded-full shadow-lg pointer-events-none mb-4"
-                  style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}80` }}
+                  className="w-3 h-3 md:w-4 md:h-4 rounded-full pointer-events-none mb-4"
+                  style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}50` }}
                 ></div>
               )}
               <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-black/30 font-mono font-bold pointer-events-none">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
@@ -120,8 +120,8 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                  }`}>
               {noteInfo && (
                 <div
-                  className="w-3 h-3 md:w-4 md:h-4 rounded-full shadow-lg pointer-events-none"
-                  style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}80` }}
+                  className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full pointer-events-none"
+                  style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}40` }}
                 ></div>
               )}
             </div>

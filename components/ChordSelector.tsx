@@ -17,7 +17,7 @@ const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedTyp
 
   const getNoteStyle = (noteIndex: number, isSelected: boolean) => {
     if (isSelected) {
-      return 'border-cyan bg-cyan/20 text-cyan shadow-[0_0_15px_rgba(0,212,255,0.4)]';
+      return 'border-cyan bg-cyan/20 text-cyan shadow-[0_0_8px_rgba(0,212,255,0.3)]';
     }
     if (noteIndex === fifthIndex) {
       return 'border-green bg-green/10 text-green';
@@ -54,7 +54,7 @@ const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedTyp
                 <button
                   key={note}
                   onClick={() => onRootChange(note)}
-                  className={`flex-shrink-0 w-10 h-10 rounded-full border flex items-center justify-center text-xs font-bold transition-all duration-200 font-mono
+                  className={`flex-shrink-0 w-9 h-9 rounded-full border flex items-center justify-center text-xs font-bold transition-all duration-200 font-mono
                     ${getNoteStyle(i, isSelected)}`}
                   title={i === fifthIndex ? '5th' : i === fourthIndex ? '4th' : undefined}
                 >
@@ -77,7 +77,7 @@ const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedTyp
                   onClick={() => onTypeChange(type)}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-md text-center text-xs transition-colors duration-200 border
                     ${isSelected
-                      ? 'bg-purple/20 border-purple text-purple shadow-[0_0_10px_rgba(168,85,247,0.3)]'
+                      ? 'bg-purple/20 border-purple text-purple shadow-[0_0_6px_rgba(168,85,247,0.2)]'
                       : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
                     } font-mono`}
                 >
@@ -108,7 +108,7 @@ const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedTyp
               <button
                 key={note}
                 onClick={() => onRootChange(note)}
-                className={`absolute w-10 h-10 rounded-full border flex items-center justify-center text-sm font-medium transition-all duration-200 transform -translate-x-1/2 -translate-y-1/2 font-mono
+                className={`absolute w-9 h-9 rounded-full border flex items-center justify-center text-xs font-medium transition-all duration-200 transform -translate-x-1/2 -translate-y-1/2 font-mono
                   ${getNoteStyle(i, isSelected)}`}
                 style={{ left: `${x}px`, top: `${y}px` }}
                 title={i === fifthIndex ? '5th' : i === fourthIndex ? '4th' : undefined}
@@ -144,7 +144,7 @@ const ChordSelector: React.FC<ChordSelectorProps> = ({ selectedRoot, selectedTyp
                 onClick={() => onTypeChange(type)}
                 className={`py-2 px-3 rounded-md text-center text-sm transition-colors duration-200 border
                   ${isSelected
-                    ? 'bg-purple/20 border-purple text-purple shadow-[0_0_10px_rgba(168,85,247,0.3)]'
+                    ? 'bg-purple/20 border-purple text-purple shadow-[0_0_6px_rgba(168,85,247,0.2)]'
                     : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
                   } font-mono`}
               >
