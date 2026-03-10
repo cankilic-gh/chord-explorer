@@ -212,8 +212,8 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
             whileHover={{ x: 2 }}
             className={`group relative rounded-lg transition-all duration-150 cursor-pointer ${opacityClass} ${
               isSelected
-                ? 'bg-crimson/5 border-l-2 border-l-crimson pl-3 pr-4 py-3.5'
-                : 'hover:bg-bone/[0.04] px-4 py-3.5'
+                ? 'bg-crimson/5 border-l-2 border-l-crimson pl-3 pr-4 py-2'
+                : 'hover:bg-bone/[0.04] px-4 py-2'
             }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
