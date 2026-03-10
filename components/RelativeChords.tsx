@@ -212,8 +212,8 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
             whileHover={{ x: 2 }}
             className={`group relative rounded-lg transition-all duration-150 cursor-pointer ${opacityClass} ${
               isSelected
-                ? 'bg-crimson/5 border-l-2 border-l-crimson pl-2.5 pr-3 py-2.5'
-                : 'hover:bg-bone/[0.04] px-3 py-2.5'
+                ? 'bg-crimson/5 border-l-2 border-l-crimson pl-3 pr-4 py-3.5'
+                : 'hover:bg-bone/[0.04] px-4 py-3.5'
             }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -233,12 +233,12 @@ const ChordCard: React.FC<ChordCardProps> = ({ chord, isSelected, isInProgressio
 
             <div className="flex items-center">
                 <MiniFretboard voicing={voicing} />
-                <div className="flex-1 ml-3 min-w-0">
-                    <p className={`font-bold font-mono ${isSelected ? 'text-crimson' : 'text-bone'}`}>
+                <div className="flex-1 ml-4 min-w-0">
+                    <p className={`font-bold font-mono text-lg ${isSelected ? 'text-crimson' : 'text-bone'}`}>
                       {chord.root}{CHORD_TYPES[chord.type].symbol}
                     </p>
                     <div className="flex items-center gap-2">
-                        <p className="text-xs text-bone/30 font-mono">{romanNumeral}</p>
+                        <p className="text-sm text-bone/30 font-mono">{romanNumeral}</p>
                         {matchingKeysCount !== undefined && matchingKeysCount > 0 && (
                             <p className="text-[10px] text-bone/20 font-mono">
                                 {matchingKeysCount} key{matchingKeysCount > 1 ? 's' : ''}

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Play, Square, Trash2, Plus, X, ChevronRight, Flame } from 'lucide-react';
 import { ProgressionChord, CHORD_TYPES } from '../constants/musicData';
 import MiniFretboard from './MiniFretboard';
-import { getAllChordVoicings } from '../lib/musicTheory';
+import { getAllChordVoicings, getChordVoicing } from '../lib/musicTheory';
 import { playProgression, stopPlayback, ensureAudioContext } from '../lib/audioEngine';
 
 interface ProgressionBuilderProps {
@@ -135,15 +135,22 @@ const ProgressionChordBlock: React.FC<ProgressionChordBlockProps> = ({ chord, on
     const allVoicings = getAllChordVoicings(chord.root, chord.type);
     const currentVoicing = allVoicings[chord.voicingIndex] || allVoicings[0];
 
+    const voicing = getChordVoicing(chord.root, chord.type);
+
     return (
         <div
-            className="group relative flex-shrink-0 w-20 md:w-24 h-16 md:h-20 bg-bone/5 border border-crimson/15 rounded-lg hover:border-crimson/40 hover:bg-crimson/5 transition-all cursor-pointer flex flex-col items-center justify-center"
+            className="group relative flex-shrink-0 w-24 md:w-28 h-20 md:h-24 bg-bone/5 border border-crimson/15 rounded-lg hover:border-crimson/40 hover:bg-crimson/5 transition-all cursor-pointer flex items-center gap-2 px-2"
             onClick={() => setShowVoicings(!showVoicings)}
         >
-            <span className="font-mono font-bold text-sm md:text-base text-bone mb-1">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
-            {allVoicings.length > 1 && (
-                <span className="text-[8px] md:text-[10px] text-bone/30 font-mono">{currentVoicing?.name}</span>
-            )}
+            <div className="flex-shrink-0 scale-75 origin-left">
+              <MiniFretboard voicing={voicing} />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-mono font-bold text-sm md:text-base text-bone">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
+              {allVoicings.length > 1 && (
+                  <span className="text-[8px] md:text-[10px] text-bone/30 font-mono truncate">{currentVoicing?.name}</span>
+              )}
+            </div>
 
             <button
                 onClick={(e) => { e.stopPropagation(); onRemove(); }}
