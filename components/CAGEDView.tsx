@@ -292,14 +292,14 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
               How it works
             </h3>
             <p className="text-sm text-bone/60 leading-relaxed">
-              <span className="text-bone font-bold">CAGED</span> sistemi, ayni akoru klavyenin 5 farkli bolgesinde
-              calmayi gosterir. Her sekil acik akorlardan (
+              The <span className="text-bone font-bold">CAGED</span> system shows how to play the same chord
+              in 5 different positions across the fretboard. Each shape is derived from open chords (
               <span style={{color: '#22c55e'}}>C</span>,
               <span style={{color: '#7c3aed'}}> A</span>,
               <span style={{color: '#DC143C'}}> G</span>,
               <span style={{color: '#ef4444'}}> E</span>,
               <span style={{color: '#DAA520'}}> D</span>
-              ) turetilmistir ve birbirine baglanarak tum klavyeyi kaplar.
+              ) and connects together to cover the entire neck.
             </p>
           </div>
 
@@ -374,9 +374,9 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
 
               <div className="mt-4 p-3 bg-bg-abyss rounded-lg border border-crimson/10">
                 <p className="text-xs text-bone/50">
-                  <span className="text-ember font-bold">Tip:</span> {selectedShape.name} seklini ogrenmek icin,
-                  once acik {selectedShape.name} {isMinor ? 'minor' : 'Major'} akorunu cal, sonra ayni parmak
-                  pozisyonunu {selectedShape.fret}. frete kaydir. Root nota (kirmizi) her zaman ayni telde kalir.
+                  <span className="text-ember font-bold">Tip:</span> To learn the {selectedShape.name} shape,
+                  first play the open {selectedShape.name} {isMinor ? 'minor' : 'Major'} chord, then slide the same finger
+                  position to fret {selectedShape.fret}. The root note (red) always stays on the same string.
                 </p>
               </div>
             </motion.div>
