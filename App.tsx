@@ -12,7 +12,7 @@ import CAGEDView from './components/CAGEDView';
 import EmberParticles from './components/EmberParticles';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
 import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
-import { playChordFromChord, ensureAudioContext } from './lib/audioEngine';
+import { playVoicing, ensureAudioContext } from './lib/audioEngine';
 
 const App: React.FC = () => {
   const [rootNote, setRootNote] = useState<Note>('A');
@@ -82,7 +82,7 @@ const App: React.FC = () => {
 
   const handlePlayChord = async () => {
     await ensureAudioContext();
-    playChordFromChord(selectedChord, 'guitar');
+    playVoicing(displayVoicing, 'guitar');
   };
 
   const TheoryNote: React.FC<{ chord: AppChord }> = ({ chord }) => {

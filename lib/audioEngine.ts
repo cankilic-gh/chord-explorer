@@ -1,5 +1,5 @@
 import * as Tone from 'tone';
-import type { Chord } from '../constants/musicData';
+import type { Chord, ChordVoicing } from '../constants/musicData';
 import { NOTES, CHORD_TYPES } from '../constants/musicData';
 
 let pianoSynth: Tone.PolySynth | null = null;
@@ -186,6 +186,37 @@ export const playChordFromChord = async (
         guitarSynth?.triggerAttackRelease(note, '2n');
       }, i * beatDuration * 1000);
     });
+  }
+};
+
+// Guitar standard tuning MIDI values: string 0 (high E) to string 5 (low E)
+const STRING_MIDI_BASE = [64, 59, 55, 50, 45, 40];
+
+const fretPositionToNote = (string: number, fret: number): string => {
+  const midi = STRING_MIDI_BASE[string] + fret;
+  const noteName = NOTES[midi % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  return `${noteName}${octave}`;
+};
+
+export const playVoicing = async (
+  voicing: ChordVoicing,
+  instrument: 'piano' | 'guitar' = 'guitar'
+): Promise<void> => {
+  await initializeAudio();
+
+  // Sort low to high string (5→0) for natural strum order
+  const sorted = [...voicing].sort((a, b) => b.string - a.string);
+  const notes = sorted.map(pos => fretPositionToNote(pos.string, pos.fret));
+
+  if (instrument === 'guitar' && guitarSynth) {
+    notes.forEach((note, i) => {
+      setTimeout(() => {
+        guitarSynth?.triggerAttackRelease(note, '2n');
+      }, i * 30); // 30ms strum delay between strings
+    });
+  } else if (instrument === 'piano' && pianoSynth) {
+    pianoSynth.triggerAttackRelease(notes, '2n');
   }
 };
 

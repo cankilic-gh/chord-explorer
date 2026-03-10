@@ -40,7 +40,7 @@ const ProgressionBuilder: React.FC<ProgressionBuilderProps> = ({ progression, on
   const isDisabled = progression.length === 0;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-28 bg-bg-abyss/95 backdrop-blur-xl border-t border-crimson/15 flex items-center px-4 md:px-6 z-30 shadow-[0_-10px_40px_rgba(220,20,60,0.08)]">
+    <div className="fixed bottom-0 left-0 right-0 h-[5.5rem] bg-bg-abyss/95 backdrop-blur-xl border-t border-crimson/15 flex items-center px-4 md:px-6 z-30 shadow-[0_-10px_40px_rgba(220,20,60,0.08)]">
       {/* Subtle metal sheen */}
       <div className="absolute inset-0 metal-sheen pointer-events-none" />
 
@@ -139,10 +139,10 @@ const ProgressionChordBlock: React.FC<ProgressionChordBlockProps> = ({ chord, on
 
     return (
         <div
-            className="group relative flex-shrink-0 w-24 md:w-28 h-20 md:h-24 bg-bone/5 border border-crimson/15 rounded-lg hover:border-crimson/40 hover:bg-crimson/5 transition-all cursor-pointer flex items-center gap-2 px-2"
+            className="group relative flex-shrink-0 w-24 md:w-28 h-16 md:h-[4.5rem] bg-bone/5 border border-crimson/15 rounded-lg hover:border-crimson/40 hover:bg-crimson/5 transition-all cursor-pointer flex items-center gap-2 px-2"
             onClick={() => setShowVoicings(!showVoicings)}
         >
-            <div className="flex-shrink-0 scale-75 origin-left">
+            <div className="flex-shrink-0 scale-[0.6] origin-left">
               <MiniFretboard voicing={voicing} />
             </div>
             <div className="flex flex-col min-w-0">
