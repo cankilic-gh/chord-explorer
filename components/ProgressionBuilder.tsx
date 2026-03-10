@@ -139,16 +139,18 @@ const ProgressionChordBlock: React.FC<ProgressionChordBlockProps> = ({ chord, on
 
     return (
         <div
-            className="group relative flex-shrink-0 w-24 md:w-28 h-16 md:h-[4.5rem] bg-bone/5 border border-crimson/15 rounded-lg hover:border-crimson/40 hover:bg-crimson/5 transition-all cursor-pointer flex items-center gap-2 px-2"
+            className="group relative flex-shrink-0 h-14 md:h-16 bg-bone/5 border border-crimson/15 rounded-lg hover:border-crimson/40 hover:bg-crimson/5 transition-all cursor-pointer flex items-center gap-1.5 px-1.5 md:px-2"
             onClick={() => setShowVoicings(!showVoicings)}
         >
-            <div className="flex-shrink-0 scale-[0.6] origin-left">
-              <MiniFretboard voicing={voicing} />
+            <div className="flex-shrink-0 w-8 h-10 md:w-9 md:h-11 overflow-hidden">
+              <div className="scale-[0.55] md:scale-[0.6] origin-top-left">
+                <MiniFretboard voicing={voicing} />
+              </div>
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-mono font-bold text-sm md:text-base text-bone">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
+              <span className="font-mono font-bold text-xs md:text-sm text-bone leading-tight">{chord.root}{CHORD_TYPES[chord.type].symbol}</span>
               {allVoicings.length > 1 && (
-                  <span className="text-[8px] md:text-[10px] text-bone/30 font-mono truncate">{currentVoicing?.name}</span>
+                  <span className="text-[7px] md:text-[9px] text-bone/30 font-mono truncate leading-tight">{currentVoicing?.name}</span>
               )}
             </div>
 
