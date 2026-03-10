@@ -112,14 +112,13 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-bg-abyss text-bone min-h-screen flex flex-col relative">
-      {/* Fixed background */}
+      {/* Background texture - no fixed attachment for performance */}
       <div
         className="fixed inset-0 z-0 opacity-15"
         style={{
           backgroundImage: 'url(/metal-bg.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
         }}
       />
       <div className="fixed inset-0 z-0 bg-gradient-to-b from-bg-abyss/80 via-bg-abyss/90 to-bg-abyss" />
@@ -139,11 +138,6 @@ const App: React.FC = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-bg-abyss via-bg-abyss/95 to-bg-abyss/90" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-crimson/50 to-transparent" />
-
-        {/* Smoke wisps in header */}
-        <div className="smoke-wisp" style={{ bottom: '5px', left: '20%', animationDelay: '0s' }} />
-        <div className="smoke-wisp" style={{ bottom: '5px', left: '60%', animationDelay: '2s' }} />
-        <div className="smoke-wisp" style={{ bottom: '5px', left: '80%', animationDelay: '4s' }} />
 
         <div className="flex items-center gap-3 relative z-10">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-crimson/50 flame-glow">
