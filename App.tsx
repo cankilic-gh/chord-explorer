@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
-import { Play, LayoutGrid, Circle as CircleIcon, Volume2, Info } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Play, LayoutGrid, Circle as CircleIcon, Volume2, Info, Skull, Flame } from 'lucide-react';
 import ChordSelector from './components/ChordSelector';
 import Piano from './components/Piano';
 import Fretboard from './components/Fretboard';
@@ -8,6 +9,7 @@ import RelativeChords from './components/RelativeChords';
 import ProgressionBuilder from './components/ProgressionBuilder';
 import CircleOfFifths from './components/CircleOfFifths';
 import CAGEDView from './components/CAGEDView';
+import EmberParticles from './components/EmberParticles';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
 import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
 import { playChordFromChord, ensureAudioContext } from './lib/audioEngine';
@@ -27,11 +29,9 @@ const App: React.FC = () => {
   const allVoicings = useMemo(() => getAllChordVoicings(rootNote, chordType), [rootNote, chordType]);
   const relativeChords = useMemo(() => getRelativeChords(rootNote, chordType), [rootNote, chordType]);
 
-  // Reset voicing index when chord changes and index would be out of bounds
   const currentVoicingIndex = selectedVoicingIndex >= allVoicings.length ? 0 : selectedVoicingIndex;
   const currentVoicing = allVoicings[currentVoicingIndex];
 
-  // Use hovered chord voicing if available, otherwise use selected chord voicing
   const displayVoicing = useMemo(() => {
     if (hoveredChord) {
       const hoverVoicings = getAllChordVoicings(hoveredChord.root, hoveredChord.type);
@@ -42,7 +42,6 @@ const App: React.FC = () => {
 
   const handleAddChordToProgression = (chord: AppChord) => {
     if (progression.length < 8) {
-      // Add chord with current voicing index (or 0 if not the selected chord)
       const voicingIdx = (chord.root === rootNote && chord.type === chordType)
         ? currentVoicingIndex
         : 0;
@@ -63,12 +62,9 @@ const App: React.FC = () => {
   const handleChordTypeChange = (newType: ChordType) => {
     const currentVoicingName = currentVoicing?.name;
     const newVoicings = getAllChordVoicings(rootNote, newType);
-
-    // Try to find a voicing with the same name
     const matchingIndex = currentVoicingName
       ? newVoicings.findIndex(v => v.name === currentVoicingName)
       : -1;
-
     setChordType(newType);
     setSelectedVoicingIndex(matchingIndex >= 0 ? matchingIndex : 0);
   };
@@ -76,7 +72,7 @@ const App: React.FC = () => {
   const handleSelectChord = (root: Note, type: ChordType) => {
     setRootNote(root);
     setChordType(type);
-    setSelectedVoicingIndex(0); // Reset to first voicing when chord changes
+    setSelectedVoicingIndex(0);
   }
 
   const handleCircleKeySelect = (key: Note, isMinor: boolean) => {
@@ -93,51 +89,98 @@ const App: React.FC = () => {
     const roman = getRomanNumeral(chord.root, chord.type);
     const notes = getChordNotes(chord.root, chord.type).map(n => n.note).join(', ');
     return (
-      <div className="bg-purple/10 border border-purple/20 rounded-lg p-5 mt-6 flex gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-blood/15 border border-crimson/20 rounded-lg p-5 mt-6 flex gap-4 border-flicker"
+      >
         <div className="mt-0.5">
-          <Info className="w-5 h-5 text-purple" />
+          <Skull className="w-5 h-5 text-crimson" />
         </div>
         <div>
-          <h4 className="text-sm font-semibold text-purple mb-1">Theory Note</h4>
-          <p className="text-sm text-white/70 leading-relaxed">
-            <span className="font-mono text-cyan">{chord.root}{CHORD_TYPES[chord.type].symbol}</span> ({roman}) consists of the notes: <span className="font-mono text-cyan">{notes}</span>.
+          <h4 className="text-sm font-semibold text-crimson mb-1 font-metal">Theory Note</h4>
+          <p className="text-sm text-bone/70 leading-relaxed">
+            <span className="font-mono text-crimson">{chord.root}{CHORD_TYPES[chord.type].symbol}</span> ({roman}) consists of the notes: <span className="font-mono text-ember">{notes}</span>.
             It serves as the '{roman}' chord in its relative major key.
-            This chord has a {chord.type === 'minor' ? 'somber, melancholic' : 'bright, happy'} quality.
+            This chord has a {chord.type === 'minor' ? 'dark, melancholic' : 'powerful, commanding'} quality.
           </p>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
   return (
-    <div className="bg-bg-dark text-white min-h-screen flex flex-col">
-      <header className="h-16 border-b border-white/10 bg-bg-dark/80 backdrop-blur-md flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan to-purple flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.3)]">
-            <Play className="w-4 h-4 text-white ml-0.5" fill="currentColor" />
+    <div className="bg-bg-abyss text-bone min-h-screen flex flex-col relative">
+      {/* Fixed background */}
+      <div
+        className="fixed inset-0 z-0 opacity-15"
+        style={{
+          backgroundImage: 'url(/metal-bg.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+        }}
+      />
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-bg-abyss/80 via-bg-abyss/90 to-bg-abyss" />
+
+      {/* Ember particles */}
+      <EmberParticles />
+
+      {/* Header */}
+      <header className="relative h-20 border-b border-crimson/20 flex items-center justify-between px-4 md:px-6 sticky top-0 z-40 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: 'url(/metal-header.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center bottom',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-bg-abyss via-bg-abyss/95 to-bg-abyss/90" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-crimson/50 to-transparent" />
+
+        {/* Smoke wisps in header */}
+        <div className="smoke-wisp" style={{ bottom: '5px', left: '20%', animationDelay: '0s' }} />
+        <div className="smoke-wisp" style={{ bottom: '5px', left: '60%', animationDelay: '2s' }} />
+        <div className="smoke-wisp" style={{ bottom: '5px', left: '80%', animationDelay: '4s' }} />
+
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-crimson/50 flame-glow">
+            <img src="/metal-icon.jpg" alt="" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-lg md:text-xl font-bold tracking-wider text-white">CHORD EXPLORER</h1>
+          <div>
+            <h1 className="text-lg md:text-xl font-gothic tracking-[0.2em] text-bone glow-text-crimson">
+              CHORD EXPLORER
+            </h1>
+            <div className="h-0.5 w-full bg-gradient-to-r from-crimson via-ember to-transparent mt-0.5" />
+          </div>
         </div>
-        <div className="flex gap-2 md:gap-3">
-          <button
+        <div className="flex gap-2 md:gap-3 relative z-10">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowCAGED(true)}
-            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-crimson/10 hover:bg-crimson/20 border border-crimson/20 hover:border-crimson/40 transition-colors text-sm font-metal font-semibold text-bone/80 hover:text-bone"
           >
-            <LayoutGrid className="w-4 h-4 text-cyan" />
+            <LayoutGrid className="w-4 h-4 text-crimson" />
             <span className="hidden md:inline">CAGED</span>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowCircleOfFifths(true)}
-            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium"
+            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-purple-dark/30 hover:bg-purple-dark/50 border border-purple-dark/40 hover:border-purple-dark/60 transition-colors text-sm font-metal font-semibold text-bone/80 hover:text-bone"
           >
-            <CircleIcon className="w-4 h-4 text-purple" />
+            <CircleIcon className="w-4 h-4 text-purple-dark" />
             <span className="hidden md:inline">Circle of Fifths</span>
-          </button>
+          </motion.button>
         </div>
       </header>
-      <div className="flex flex-1 overflow-hidden flex-col lg:flex-row">
-        {/* Left Sidebar - Hidden on mobile, shown on lg */}
-        <aside className="hidden lg:block w-72 flex-shrink-0 border-r border-white/10 p-6 overflow-y-auto bg-bg-dark/50">
+
+      <div className="flex flex-1 overflow-hidden flex-col lg:flex-row relative z-10">
+        {/* Left Sidebar */}
+        <aside className="hidden lg:block w-72 flex-shrink-0 border-r border-crimson/10 p-6 overflow-y-auto bg-bg-steel/50">
           <ChordSelector
             selectedRoot={rootNote}
             selectedType={chordType}
@@ -146,8 +189,8 @@ const App: React.FC = () => {
           />
         </aside>
 
-        {/* Mobile Chord Selector - Only shown on mobile */}
-        <div className="lg:hidden border-b border-white/10 p-3 bg-bg-dark/50">
+        {/* Mobile Chord Selector */}
+        <div className="lg:hidden border-b border-crimson/10 p-3 bg-bg-steel/50">
           <ChordSelector
             selectedRoot={rootNote}
             selectedType={chordType}
@@ -157,88 +200,122 @@ const App: React.FC = () => {
           />
         </div>
 
-        <main className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto pb-36 lg:pb-32 bg-bg-dark">
+        <main className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto pb-36 lg:pb-32">
           <div className="w-full max-w-5xl mx-auto">
-            {/* Chord Title Area */}
-            <div className="mb-8 flex items-end justify-between">
+            {/* Chord Title */}
+            <motion.div
+              key={`${rootNote}-${chordType}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+              className="mb-8 flex items-end justify-between"
+            >
               <div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight flex items-center gap-3">
-                  {rootNote}{CHORD_TYPES[chordType].symbol}
-                  <span className="text-lg md:text-xl font-normal text-white/50 font-mono">
+                <h2 className="text-3xl md:text-5xl font-gothic font-bold text-bone tracking-wider flex items-center gap-3">
+                  <span className="text-crimson glow-text-crimson">{rootNote}{CHORD_TYPES[chordType].symbol}</span>
+                  <span className="text-lg md:text-xl font-normal text-bone/40 font-mono">
                     ({rootNote} {chordType})
                   </span>
                 </h2>
-                <p className="text-white/60 mt-2 text-sm">
-                  {chordType === 'minor' ? 'A minor chord with a somber, melancholic quality.' :
-                   chordType === 'Major' ? 'A major chord with a bright, uplifting quality.' :
-                   chordType === 'm7' ? 'A minor chord with an added minor seventh.' :
-                   chordType === 'M7' ? 'A major chord with an added major seventh.' :
-                   chordType === '7' ? 'A dominant seventh chord with a strong pull to resolve.' :
-                   chordType === 'dim' ? 'A diminished chord with a tense, unstable quality.' :
-                   chordType === 'aug' ? 'An augmented chord with a bright, suspended quality.' :
-                   `The ${rootNote} ${chordType} chord.`}
+                <p className="text-bone/50 mt-2 text-sm font-industrial">
+                  {chordType === 'minor' ? 'A dark chord forged in shadow and sorrow.' :
+                   chordType === 'Major' ? 'A powerful chord commanding presence and might.' :
+                   chordType === 'm7' ? 'A haunting minor seventh, echoing through the void.' :
+                   chordType === 'M7' ? 'A majestic seventh, resonating with dark beauty.' :
+                   chordType === '7' ? 'A dominant force pulling all toward its resolve.' :
+                   chordType === 'dim' ? 'A diminished specter of tension and unrest.' :
+                   chordType === 'aug' ? 'An augmented cry, suspended between worlds.' :
+                   `The ${rootNote} ${chordType} chord, forged in fire.`}
                 </p>
+                <div className="h-0.5 w-32 bg-gradient-to-r from-crimson/60 to-transparent mt-3" />
               </div>
-              <button
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handlePlayChord}
-                className="w-12 h-12 rounded-full bg-cyan/10 text-cyan border border-cyan/30 flex items-center justify-center hover:bg-cyan/20 transition-colors"
+                className="w-12 h-12 rounded-full bg-crimson/15 text-crimson border border-crimson/30 flex items-center justify-center hover:bg-crimson/25 transition-colors flame-glow"
               >
                 <Volume2 className="w-5 h-5" />
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
 
             {/* Piano */}
-            <div className="mb-10">
-              <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">Piano View</h3>
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-10"
+            >
+              <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-[0.2em] mb-4 font-metal flex items-center gap-2">
+                <Flame className="w-3 h-3 text-ember" />
+                Piano View
+              </h3>
               <Piano notes={chordNotes} />
-            </div>
+            </motion.div>
 
             {/* Voicing Selector */}
-            <div className="mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mb-6"
+            >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest">Guitar Voicings</h3>
-                <span className="text-xs text-white/40 font-mono">{allVoicings.length} variation{allVoicings.length !== 1 ? 's' : ''} found</span>
+                <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-[0.2em] font-metal flex items-center gap-2">
+                  <Flame className="w-3 h-3 text-ember" />
+                  Guitar Voicings
+                </h3>
+                <span className="text-xs text-bone/30 font-mono">{allVoicings.length} variation{allVoicings.length !== 1 ? 's' : ''} found</span>
               </div>
               <div className={`flex gap-2 overflow-x-auto pb-2 transition-opacity ${hoveredChord ? 'opacity-40' : ''}`}>
                 {allVoicings.length > 1 ? (
                   allVoicings.map((voicing, index) => (
-                    <button
+                    <motion.button
                       key={index}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                       onClick={() => setSelectedVoicingIndex(index)}
                       disabled={!!hoveredChord}
-                      className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-all border ${
+                      className={`px-4 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-all border font-mono ${
                         currentVoicingIndex === index
-                          ? 'bg-cyan/20 border-cyan text-cyan shadow-[0_0_10px_rgba(0,212,255,0.2)]'
-                          : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:text-white'
+                          ? 'bg-crimson/20 border-crimson text-crimson shadow-[0_0_10px_rgba(220,20,60,0.3)]'
+                          : 'bg-bone/5 border-bone/10 text-bone/60 hover:bg-bone/10 hover:text-bone'
                       } ${hoveredChord ? 'cursor-not-allowed' : ''}`}
                     >
                       {voicing.name}
                       {voicing.startFret > 0 && (
                         <span className="ml-1 text-xs opacity-70">({voicing.startFret}fr)</span>
                       )}
-                    </button>
+                    </motion.button>
                   ))
                 ) : (
-                  <span className="text-sm text-white/50 font-mono">{allVoicings[0]?.name || 'Default'}</span>
+                  <span className="text-sm text-bone/40 font-mono">{allVoicings[0]?.name || 'Default'}</span>
                 )}
                 {hoveredChord && (
-                  <span className="ml-2 text-xs text-white/50 italic self-center">Preview</span>
+                  <span className="ml-2 text-xs text-bone/40 italic self-center">Preview</span>
                 )}
               </div>
-            </div>
+            </motion.div>
 
             {/* Fretboard */}
-            <Fretboard voicing={displayVoicing} isPreview={hoveredChord !== null} />
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Fretboard voicing={displayVoicing} isPreview={hoveredChord !== null} />
+            </motion.div>
 
-            {/* Theory Note - hidden on small mobile */}
+            {/* Theory Note */}
             <div className="hidden md:block">
               <TheoryNote chord={selectedChord} />
             </div>
 
-            {/* Mobile Relative Chords Toggle */}
-            <button
+            {/* Mobile Related Chords Toggle */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowRelativeChords(!showRelativeChords)}
-              className="lg:hidden w-full mt-6 p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between font-mono text-sm hover:bg-white/10 transition-colors"
+              className="lg:hidden w-full mt-6 p-3 bg-crimson/5 border border-crimson/15 rounded-lg flex items-center justify-between font-mono text-sm hover:bg-crimson/10 transition-colors"
             >
               <span>Related Chords ({relativeChords.length})</span>
               <svg
@@ -252,27 +329,34 @@ const App: React.FC = () => {
               >
                 <polyline points="6 9 12 15 18 9" />
               </svg>
-            </button>
+            </motion.button>
 
-            {/* Mobile Relative Chords - Collapsible */}
-            {showRelativeChords && (
-              <div className="lg:hidden mt-3 bg-white/5 border border-white/10 rounded-lg p-3">
-                <RelativeChords
-                  chords={relativeChords}
-                  selectedChord={selectedChord}
-                  progression={progression}
-                  onSelectChord={handleSelectChord}
-                  onAddToProgression={handleAddChordToProgression}
-                  onHoverChord={setHoveredChord}
-                  compact
-                />
-              </div>
-            )}
+            {/* Mobile Related Chords */}
+            <AnimatePresence>
+              {showRelativeChords && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="lg:hidden mt-3 bg-crimson/5 border border-crimson/10 rounded-lg p-3 overflow-hidden"
+                >
+                  <RelativeChords
+                    chords={relativeChords}
+                    selectedChord={selectedChord}
+                    progression={progression}
+                    onSelectChord={handleSelectChord}
+                    onAddToProgression={handleAddChordToProgression}
+                    onHoverChord={setHoveredChord}
+                    compact
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </main>
 
-        {/* Right Sidebar - Hidden on mobile */}
-        <aside className="hidden lg:block w-80 flex-shrink-0 border-l border-white/10 bg-bg-dark/80 backdrop-blur-md p-6 overflow-y-auto pb-32">
+        {/* Right Sidebar */}
+        <aside className="hidden lg:block w-80 flex-shrink-0 border-l border-crimson/10 bg-bg-steel/60 backdrop-blur-sm p-6 overflow-y-auto pb-32">
           <RelativeChords
             chords={relativeChords}
             selectedChord={selectedChord}
@@ -283,30 +367,37 @@ const App: React.FC = () => {
           />
         </aside>
       </div>
+
       <ProgressionBuilder
         progression={progression}
         onClear={handleClearProgression}
         onRemove={(index) => setProgression(progression.filter((_, i) => i !== index))}
         onUpdateVoicing={handleUpdateProgressionVoicing}
       />
-      {showCircleOfFifths && (
-        <CircleOfFifths
-          selectedKey={rootNote}
-          isMinor={chordType === 'minor' || chordType === 'm7'}
-          onSelectKey={handleCircleKeySelect}
-          onClose={() => setShowCircleOfFifths(false)}
-        />
-      )}
-      {showCAGED && (
-        <CAGEDView
-          rootNote={rootNote}
-          chordType={chordType}
-          onSelectShape={(shape) => {
-            console.log('Selected CAGED shape:', shape.name, 'at fret', shape.fret);
-          }}
-          onClose={() => setShowCAGED(false)}
-        />
-      )}
+
+      <AnimatePresence>
+        {showCircleOfFifths && (
+          <CircleOfFifths
+            selectedKey={rootNote}
+            isMinor={chordType === 'minor' || chordType === 'm7'}
+            onSelectKey={handleCircleKeySelect}
+            onClose={() => setShowCircleOfFifths(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCAGED && (
+          <CAGEDView
+            rootNote={rootNote}
+            chordType={chordType}
+            onSelectShape={(shape) => {
+              console.log('Selected CAGED shape:', shape.name, 'at fret', shape.fret);
+            }}
+            onClose={() => setShowCAGED(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

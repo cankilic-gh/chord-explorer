@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { motion } from 'motion/react';
 import { X, Circle as CircleIcon } from 'lucide-react';
 import { Note, ChordType, CHORD_TYPES } from '../constants/musicData';
 
@@ -89,17 +90,28 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
   const isAdjacentKey = (index: number) => adjacentIndices.includes(index);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#15151a] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        className="bg-bg-steel border border-crimson/20 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-[0_0_60px_rgba(220,20,60,0.15)] flex flex-col"
+      >
+        <div className="flex items-center justify-between p-6 border-b border-crimson/15">
           <div className="flex items-center gap-3">
-            <CircleIcon className="w-6 h-6 text-purple" />
-            <h2 className="text-xl font-bold text-white">Circle of Fifths</h2>
+            <CircleIcon className="w-6 h-6 text-purple-dark" />
+            <h2 className="text-xl font-bold text-bone font-metal tracking-wider">Circle of Fifths</h2>
           </div>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+              className="p-2 rounded-full hover:bg-crimson/10 text-bone/40 hover:text-crimson transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -108,10 +120,10 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
 
         <div className="p-8 flex flex-col items-center">
           <div className="relative w-[400px] h-[400px] mb-12">
-            <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+            <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-[0_0_30px_rgba(220,20,60,0.15)]">
               {/* Background circles */}
-              <circle cx={centerX} cy={centerY} r={outerRadius + 30} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="40" />
-              <circle cx={centerX} cy={centerY} r={innerRadius - 10} fill="none" stroke="rgba(255,255,255,0.02)" strokeWidth="40" />
+              <circle cx={centerX} cy={centerY} r={outerRadius + 30} fill="none" stroke="rgba(220,20,60,0.05)" strokeWidth="40" />
+              <circle cx={centerX} cy={centerY} r={innerRadius - 10} fill="none" stroke="rgba(220,20,60,0.03)" strokeWidth="40" />
 
               {/* Radial lines */}
               {Array.from({ length: 12 }).map((_, i) => {
@@ -125,7 +137,7 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
                     y1={centerY}
                     x2={x2}
                     y2={y2}
-                    stroke="rgba(255,255,255,0.1)"
+                    stroke="rgba(220,20,60,0.08)"
                     strokeWidth="1"
                   />
                 );
@@ -143,10 +155,10 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
                       cx={pos.x}
                       cy={pos.y}
                       r={keyRadius}
-                      fill={isSelected ? '#00D4FF' : isAdjacent ? 'rgba(0,212,255,0.2)' : 'transparent'}
-                      stroke={isSelected ? '#00D4FF' : isAdjacent ? 'rgba(0,212,255,0.5)' : 'rgba(255,255,255,0.1)'}
+                      fill={isSelected ? '#DC143C' : isAdjacent ? 'rgba(220,20,60,0.2)' : 'transparent'}
+                      stroke={isSelected ? '#DC143C' : isAdjacent ? 'rgba(220,20,60,0.4)' : 'rgba(224,213,197,0.1)'}
                       strokeWidth={isSelected ? 3 : 1.5}
-                      className="transition-all duration-200 hover:fill-white/5"
+                      className="transition-all duration-200 hover:fill-[rgba(220,20,60,0.1)]"
                       onClick={() => onSelectKey(key, false)}
                     />
                     <text
@@ -154,7 +166,7 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
                       y={pos.y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isSelected ? '#000' : '#fff'}
+                      fill={isSelected ? '#fff' : '#e0d5c5'}
                       fontSize="12"
                       fontFamily="monospace"
                       fontWeight={isSelected ? 'bold' : 'normal'}
@@ -178,10 +190,10 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
                       cx={pos.x}
                       cy={pos.y}
                       r={innerKeyRadius}
-                      fill={isSelected ? '#a855f7' : isAdjacent ? 'rgba(168,85,247,0.2)' : 'transparent'}
-                      stroke={isSelected ? '#a855f7' : isAdjacent ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.1)'}
+                      fill={isSelected ? '#4A0E4E' : isAdjacent ? 'rgba(74,14,78,0.3)' : 'transparent'}
+                      stroke={isSelected ? '#7c3aed' : isAdjacent ? 'rgba(124,58,237,0.4)' : 'rgba(224,213,197,0.08)'}
                       strokeWidth={isSelected ? 3 : 1}
-                      className="transition-all duration-200 hover:fill-white/5"
+                      className="transition-all duration-200 hover:fill-[rgba(74,14,78,0.15)]"
                       onClick={() => onSelectKey(key, true)}
                     />
                     <text
@@ -189,7 +201,7 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
                       y={pos.y}
                       textAnchor="middle"
                       dominantBaseline="central"
-                      fill={isSelected ? '#ffffff' : 'rgba(255,255,255,0.6)'}
+                      fill={isSelected ? '#e0d5c5' : 'rgba(224,213,197,0.5)'}
                       fontSize="10"
                       fontFamily="monospace"
                       fontWeight={isSelected ? 'bold' : 'normal'}
@@ -202,14 +214,14 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
               })}
 
               {/* Center */}
-              <circle cx={centerX} cy={centerY} r="60" fill="#0a0a0f" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+              <circle cx={centerX} cy={centerY} r="60" fill="#050508" stroke="rgba(220,20,60,0.15)" strokeWidth="2" />
               <text
                 x={centerX}
                 y={centerY - 8}
                 textAnchor="middle"
-                fill="#ffffff"
+                fill="#e0d5c5"
                 fontSize="18"
-                fontFamily="monospace"
+                fontFamily="'Cinzel', serif"
                 fontWeight="bold"
               >
                 {selectedKey}{isMinor ? 'm' : ''}
@@ -218,7 +230,7 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
                 x={centerX}
                 y={centerY + 14}
                 textAnchor="middle"
-                fill={isMinor ? '#a855f7' : '#00D4FF'}
+                fill={isMinor ? '#7c3aed' : '#DC143C'}
                 fontSize="11"
                 fontFamily="monospace"
               >
@@ -227,49 +239,51 @@ const CircleOfFifths: React.FC<CircleOfFifthsProps> = ({
             </svg>
           </div>
 
-          {/* Diatonic chords section */}
-          <div className="w-full max-w-3xl bg-white/5 border border-white/10 rounded-xl p-6">
-            <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
+          {/* Diatonic chords */}
+          <div className="w-full max-w-3xl bg-bone/5 border border-crimson/10 rounded-xl p-6">
+            <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-[0.2em] mb-4 font-metal">
               Diatonic Chords in {selectedKey} {isMinor ? 'minor' : 'Major'}
             </h3>
             <div className="grid grid-cols-7 gap-2">
               {diatonicChords.map((chord, index) => (
-                <div
+                <motion.div
                   key={`diatonic-${index}`}
-                  className="bg-bg-dark border border-white/10 rounded-lg px-2 py-3 text-center hover:border-cyan/50 transition-colors cursor-pointer"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-bg-abyss border border-crimson/10 rounded-lg px-2 py-3 text-center hover:border-crimson/30 transition-colors cursor-pointer"
                   onClick={() => onSelectKey(chord.root, chord.type === 'minor')}
                 >
-                  <div className="text-xs text-white/50 font-mono mb-1">{chord.numeral}</div>
-                  <div className="text-sm text-white font-mono font-bold">
+                  <div className="text-xs text-bone/40 font-mono mb-1">{chord.numeral}</div>
+                  <div className="text-sm text-bone font-mono font-bold">
                     {chord.root}{CHORD_TYPES[chord.type].symbol}
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </div>
 
         {/* Legend */}
-        <div className="px-8 pb-6 flex flex-wrap gap-4 justify-center text-xs text-white/50">
+        <div className="px-8 pb-6 flex flex-wrap gap-4 justify-center text-xs text-bone/40">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-cyan"></div>
+            <div className="w-4 h-4 rounded-full bg-crimson"></div>
             <span>Selected Key</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-cyan/20 border border-cyan/50"></div>
+            <div className="w-4 h-4 rounded-full bg-crimson/20 border border-crimson/40"></div>
             <span>Easy Modulation</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full border border-white/10"></div>
+            <div className="w-4 h-4 rounded-full border border-bone/10"></div>
             <span>Major Keys (outer)</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-purple"></div>
+            <div className="w-4 h-4 rounded-full bg-purple-dark"></div>
             <span>Minor Keys (inner)</span>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

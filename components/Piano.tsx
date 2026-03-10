@@ -25,8 +25,8 @@ const PIANO_KEYS = [
 
 const INTERVAL_COLORS: Record<string, string> = {
   'Root': '#ef4444',
-  'Minor 3rd': '#3b82f6',
-  'Major 3rd': '#3b82f6',
+  'Minor 3rd': '#7c3aed',
+  'Major 3rd': '#7c3aed',
   'Perfect 5th': '#22c55e',
   'Diminished 5th': '#22c55e',
   'Augmented 5th': '#22c55e',
@@ -59,7 +59,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-28 md:h-36 border border-white/10 rounded-lg overflow-hidden shadow-2xl bg-black select-none overflow-x-auto">
+    <div className="relative w-full h-28 md:h-36 border border-crimson/15 rounded-lg overflow-hidden shadow-[0_0_30px_rgba(220,20,60,0.1)] bg-bg-steel select-none overflow-x-auto">
       <div className="relative h-full flex min-w-[500px] md:min-w-0">
         {whiteKeys.map((key, index) => {
           const noteInfo = noteMap.get(key.note as Note);
@@ -70,17 +70,17 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
             <div
               key={`${key.note}${key.octave}-${index}`}
               onClick={() => handleKeyPress(key.note, key.octave)}
-              className={`relative h-full flex-1 border-r border-black/20 flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] ${
-                isPressed ? 'bg-gray-200 scale-[0.98]' : 'bg-white hover:bg-gray-100'
+              className={`relative h-full flex-1 border-r border-bg-abyss/40 flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] ${
+                isPressed ? 'bg-bone/80 scale-[0.98]' : 'bg-bone/90 hover:bg-bone/95'
               }`}
             >
               {noteInfo && (
                 <div
                   className="w-3 h-3 md:w-4 md:h-4 rounded-full pointer-events-none mb-4"
-                  style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}50` }}
+                  style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}60, 0 0 16px ${color}20` }}
                 ></div>
               )}
-              <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-black/30 font-mono font-bold pointer-events-none">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
+              <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-bg-abyss/30 font-mono font-bold pointer-events-none">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
             </div>
           );
         })}
@@ -118,13 +118,13 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
             <div key={`${key.note}${key.octave}-${index}`}
                  onClick={() => handleKeyPress(key.note, key.octave)}
                  style={{ left: `${leftPosition}%`}}
-                 className={`absolute top-0 w-[5%] h-2/3 rounded-b-md z-10 flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] border border-black/50 shadow-lg ${
-                   isPressed ? 'bg-[#0a0a0f] scale-[0.98]' : 'bg-[#1a1a24] hover:bg-[#2a2a35]'
+                 className={`absolute top-0 w-[5%] h-2/3 rounded-b-md z-10 flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] border border-bg-abyss/70 shadow-lg ${
+                   isPressed ? 'bg-bg-abyss scale-[0.98]' : 'bg-[#0a0a12] hover:bg-[#151520]'
                  }`}>
               {noteInfo && (
                 <div
                   className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full pointer-events-none"
-                  style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}40` }}
+                  style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}50, 0 0 12px ${color}20` }}
                 ></div>
               )}
             </div>

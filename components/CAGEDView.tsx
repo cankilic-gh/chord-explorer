@@ -1,6 +1,7 @@
 
 import React, { useMemo, useState } from 'react';
-import { X, LayoutGrid } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, LayoutGrid, Flame } from 'lucide-react';
 import { Note, ChordType, CHORD_TYPES } from '../constants/musicData';
 import { calculateCAGEDPositions, cagedShapeToVoicing, CAGEDShape } from '../lib/cagedSystem';
 
@@ -13,8 +14,8 @@ interface CAGEDViewProps {
 
 const INTERVAL_COLORS: Record<string, string> = {
   'Root': '#ef4444',
-  'Minor 3rd': '#3b82f6',
-  'Major 3rd': '#3b82f6',
+  'Minor 3rd': '#7c3aed',
+  'Major 3rd': '#7c3aed',
   'Perfect 5th': '#22c55e',
 };
 
@@ -34,35 +35,35 @@ const MiniCAGEDFretboard: React.FC<{
   const fretCount = 5;
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex flex-col items-center p-3 rounded-xl border transition-all hover:scale-105 ${
+      className={`flex flex-col items-center p-3 rounded-xl border transition-all ${
         isSelected
-          ? 'border-white/30 bg-white/10'
-          : 'border-white/10 bg-white/5 hover:bg-white/10'
+          ? 'border-crimson/40 bg-crimson/10'
+          : 'border-crimson/10 bg-bone/5 hover:bg-crimson/5'
       }`}
     >
-      {/* Shape name */}
       <div
         className="text-2xl font-bold font-mono mb-1"
         style={{ color: shape.color }}
       >
         {shape.name}
       </div>
-      <div className="text-xs text-white/40 mb-2 font-mono">
+      <div className="text-xs text-bone/30 mb-2 font-mono">
         {shape.fret}. fret
       </div>
 
-      {/* Mini fretboard */}
-      <div className="relative w-16 h-20 bg-bg-dark rounded border border-white/10">
+      <div className="relative w-16 h-20 bg-bg-abyss rounded border border-crimson/10">
         {startFret === 0 && (
-          <div className="absolute top-0 left-0 right-0 h-1 bg-white/50" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-bone/40" />
         )}
 
         {[1, 2, 3, 4].map(fret => (
           <div
             key={fret}
-            className="absolute w-full h-px bg-white/20"
+            className="absolute w-full h-px bg-bone/15"
             style={{ top: `${fret * 20}%` }}
           />
         ))}
@@ -70,7 +71,7 @@ const MiniCAGEDFretboard: React.FC<{
         {[0, 1, 2, 3, 4, 5].map(string => (
           <div
             key={string}
-            className="absolute h-full bg-white/20"
+            className="absolute h-full bg-bone/15"
             style={{
               left: `${(string / 5) * 100}%`,
               width: '1px',
@@ -92,12 +93,12 @@ const MiniCAGEDFretboard: React.FC<{
           return (
             <div
               key={idx}
-              className="absolute w-2.5 h-2.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 border border-white/30"
+              className="absolute w-2.5 h-2.5 rounded-full transform -translate-x-1/2 -translate-y-1/2 border border-bone/20"
               style={{
                 left: `${x}%`,
                 top: `${y}%`,
                 backgroundColor: INTERVAL_COLORS[pos.interval] || shape.color,
-                boxShadow: `0 0 5px ${INTERVAL_COLORS[pos.interval] || shape.color}60`,
+                boxShadow: `0 0 6px ${INTERVAL_COLORS[pos.interval] || shape.color}50`,
               }}
             />
           );
@@ -109,7 +110,7 @@ const MiniCAGEDFretboard: React.FC<{
           return (
             <div
               key={`mute-${stringIdx}`}
-              className="absolute text-[8px] text-white/40 transform -translate-x-1/2"
+              className="absolute text-[8px] text-bone/30 transform -translate-x-1/2"
               style={{ left: `${x}%`, top: '-12px' }}
             >
               x
@@ -119,9 +120,9 @@ const MiniCAGEDFretboard: React.FC<{
       </div>
 
       {isSelected && (
-        <div className="mt-2 text-xs text-cyan font-mono">Selected</div>
+        <div className="mt-2 text-xs text-crimson font-mono">Selected</div>
       )}
-    </button>
+    </motion.button>
   );
 };
 
@@ -138,13 +139,13 @@ const FullFretboardView: React.FC<{
   const stringSpacing = 11;
 
   return (
-    <div className="relative h-32 bg-bg-dark rounded-xl border border-white/10 overflow-hidden">
-      <div className="absolute left-0 top-0 bottom-6 w-1.5 bg-white/40" />
+    <div className="relative h-32 bg-bg-abyss rounded-xl border border-crimson/10 overflow-hidden">
+      <div className="absolute left-0 top-0 bottom-6 w-1.5 bg-bone/30" />
 
       {Array.from({ length: maxFret + 1 }).map((_, fret) => (
         <div
           key={fret}
-          className="absolute h-[calc(100%-24px)] w-px bg-white/20"
+          className="absolute h-[calc(100%-24px)] w-px bg-bone/10"
           style={{ left: `${(fret / maxFret) * 100}%` }}
         />
       ))}
@@ -152,7 +153,7 @@ const FullFretboardView: React.FC<{
       {[0, 1, 2, 3, 4, 5].map(string => (
         <div
           key={string}
-          className="absolute w-full bg-white/20"
+          className="absolute w-full bg-bone/15"
           style={{
             top: `${topPadding + string * stringSpacing}%`,
             height: string < 3 ? '1px' : '2px',
@@ -163,14 +164,14 @@ const FullFretboardView: React.FC<{
       {[3, 5, 7, 9, 12, 15].map(fret => (
         <React.Fragment key={fret}>
           <div
-            className="absolute w-2 h-2 rounded-full bg-white/10 transform -translate-x-1/2"
+            className="absolute w-2 h-2 rounded-full bg-crimson/10 transform -translate-x-1/2"
             style={{
               left: `${((fret - 0.5) / maxFret) * 100}%`,
               top: `${topPadding + 2.5 * stringSpacing}%`,
             }}
           />
           <div
-            className="absolute bottom-1 text-[10px] text-white/30 font-mono transform -translate-x-1/2"
+            className="absolute bottom-1 text-[10px] text-bone/20 font-mono transform -translate-x-1/2"
             style={{ left: `${((fret - 0.5) / maxFret) * 100}%` }}
           >
             {fret}
@@ -196,7 +197,7 @@ const FullFretboardView: React.FC<{
                 width: `${((endFret - startFret) / maxFret) * 100}%`,
                 height: 'calc(100% - 28px)',
                 borderColor: shape.color,
-                backgroundColor: `${shape.color}20`,
+                backgroundColor: `${shape.color}15`,
               }}
             >
               <span
@@ -214,7 +215,7 @@ const FullFretboardView: React.FC<{
               return (
                 <div
                   key={`${shape.name}-${idx}`}
-                  className={`absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2 border border-white/30 transition-all ${
+                  className={`absolute w-3 h-3 rounded-full transform -translate-x-1/2 -translate-y-1/2 border border-bone/20 transition-all ${
                     isSelected ? 'opacity-100 scale-100' : 'opacity-40 scale-75'
                   }`}
                   style={{
@@ -254,20 +255,30 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div
-        className="bg-[#15151a] border border-white/10 rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        className="bg-bg-steel border border-crimson/20 rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow-[0_0_60px_rgba(220,20,60,0.15)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-[#15151a]/90 backdrop-blur z-10">
+        <div className="flex items-center justify-between p-6 border-b border-crimson/15 sticky top-0 bg-bg-steel/95 backdrop-blur z-10">
           <div className="flex items-center gap-3">
-            <LayoutGrid className="w-6 h-6 text-cyan" />
-            <h2 className="text-xl font-bold text-white">CAGED System <span className="text-white/40 font-normal ml-2">| {chordName}</span></h2>
+            <LayoutGrid className="w-6 h-6 text-crimson" />
+            <h2 className="text-xl font-bold text-bone font-metal tracking-wider">CAGED System <span className="text-bone/30 font-normal ml-2">| {chordName}</span></h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            className="p-2 rounded-full hover:bg-crimson/10 text-bone/40 hover:text-crimson transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -275,23 +286,26 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
 
         <div className="p-8">
           {/* Explanation */}
-          <div className="bg-cyan/10 border border-cyan/20 rounded-xl p-5 mb-8">
-            <h3 className="text-sm font-bold text-cyan mb-2">How it works</h3>
-            <p className="text-sm text-white/70 leading-relaxed">
-              <span className="text-white font-bold">CAGED</span> sistemi, ayni akoru klavyenin 5 farkli bolgesinde
+          <div className="bg-crimson/10 border border-crimson/20 rounded-xl p-5 mb-8 border-flicker">
+            <h3 className="text-sm font-bold text-crimson mb-2 font-metal flex items-center gap-2">
+              <Flame className="w-4 h-4" />
+              How it works
+            </h3>
+            <p className="text-sm text-bone/60 leading-relaxed">
+              <span className="text-bone font-bold">CAGED</span> sistemi, ayni akoru klavyenin 5 farkli bolgesinde
               calmayi gosterir. Her sekil acik akorlardan (
               <span style={{color: '#22c55e'}}>C</span>,
-              <span style={{color: '#3b82f6'}}> A</span>,
-              <span style={{color: '#a855f7'}}> G</span>,
+              <span style={{color: '#7c3aed'}}> A</span>,
+              <span style={{color: '#DC143C'}}> G</span>,
               <span style={{color: '#ef4444'}}> E</span>,
-              <span style={{color: '#f6b55f'}}> D</span>
+              <span style={{color: '#DAA520'}}> D</span>
               ) turetilmistir ve birbirine baglanarak tum klavyeyi kaplar.
             </p>
           </div>
 
           {/* Full fretboard visualization */}
           <div className="mb-8">
-            <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">
+            <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-[0.2em] mb-4 font-metal">
               Full Neck Map - {chordName}
             </h3>
             <FullFretboardView
@@ -301,14 +315,14 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
               rootNote={rootNote}
               isMinor={isMinor}
             />
-            <p className="text-xs text-white/40 mt-2 text-center">
+            <p className="text-xs text-bone/30 mt-2 text-center">
               Click a region to see details
             </p>
           </div>
 
           {/* 5 CAGED shapes */}
           <div className="mb-8">
-            <h3 className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-4">5 Positions</h3>
+            <h3 className="text-xs font-semibold text-bone/40 uppercase tracking-[0.2em] mb-4 font-metal">5 Positions</h3>
             <div className="grid grid-cols-5 gap-3">
               {shapes.map((shape) => (
                 <MiniCAGEDFretboard
@@ -325,62 +339,68 @@ const CAGEDView: React.FC<CAGEDViewProps> = ({
 
           {/* Selected shape details */}
           {selectedShape && (
-            <div className="bg-white/5 border border-white/10 rounded-xl p-5 mb-8">
+            <motion.div
+              key={selectedShape.name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-bone/5 border border-crimson/10 rounded-xl p-5 mb-8"
+            >
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <span
-                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold font-mono text-xl text-white"
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold font-mono text-xl text-bone"
                       style={{ backgroundColor: selectedShape.color }}
                     >
                       {selectedShape.name}
                     </span>
                     <div>
-                      <p className="font-mono text-lg text-white">
+                      <p className="font-mono text-lg text-bone">
                         {selectedShape.name} Shape - {selectedShape.fret}. fret
                       </p>
-                      <p className="text-sm text-white/50">{selectedShape.description}</p>
+                      <p className="text-sm text-bone/40">{selectedShape.description}</p>
                     </div>
                   </div>
                 </div>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleSelectAndClose(selectedShape)}
-                  className="px-4 py-2 bg-green hover:bg-green/80 text-black rounded-lg text-sm font-mono transition-colors font-medium"
+                  className="px-4 py-2 bg-crimson hover:bg-hellfire text-bone rounded-lg text-sm font-mono transition-colors font-medium shadow-[0_0_15px_rgba(220,20,60,0.3)]"
                 >
                   Select Position
-                </button>
+                </motion.button>
               </div>
 
-              {/* Learning tip */}
-              <div className="mt-4 p-3 bg-bg-dark rounded-lg border border-white/10">
-                <p className="text-xs text-white/60">
-                  <span className="text-gold font-bold">Tip:</span> {selectedShape.name} seklini ogrenmek icin,
+              <div className="mt-4 p-3 bg-bg-abyss rounded-lg border border-crimson/10">
+                <p className="text-xs text-bone/50">
+                  <span className="text-ember font-bold">Tip:</span> {selectedShape.name} seklini ogrenmek icin,
                   once acik {selectedShape.name} {isMinor ? 'minor' : 'Major'} akorunu cal, sonra ayni parmak
                   pozisyonunu {selectedShape.fret}. frete kaydir. Root nota (kirmizi) her zaman ayni telde kalir.
                 </p>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Legend */}
-          <div className="flex items-center gap-6 p-4 bg-white/5 rounded-lg border border-white/10 text-xs">
-            <span className="font-semibold text-white/50 uppercase tracking-widest">Legend:</span>
+          <div className="flex items-center gap-6 p-4 bg-bone/5 rounded-lg border border-crimson/10 text-xs">
+            <span className="font-semibold text-bone/40 uppercase tracking-widest font-metal">Legend:</span>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-root"></span>
-              <span className="text-white/70">Root</span>
+              <span className="text-bone/50">Root</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-3rd"></span>
-              <span className="text-white/70">3rd</span>
+              <span className="text-bone/50">3rd</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-5th"></span>
-              <span className="text-white/70">5th</span>
+              <span className="text-bone/50">5th</span>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
