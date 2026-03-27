@@ -14,8 +14,8 @@ const FRET_COUNT = 15;
 const STRING_COUNT = 6;
 const FRET_MARKERS = [3, 5, 7, 9, 12, 15];
 
-// Standard tuning: string 0 = high E (E4), string 5 = low E (E2)
-const OPEN_STRING_MIDI = [64, 59, 55, 50, 45, 40];
+// Standard tuning matching voicing convention: string 0 = low E (E2), string 5 = high E (E4)
+const OPEN_STRING_MIDI = [40, 45, 50, 55, 59, 64];
 const NOTES: Note[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const INTERVAL_COLORS: Record<string, string> = {
