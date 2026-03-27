@@ -508,19 +508,19 @@ const computeBeatPositions = (beats: ProcessedBeat[]): number[] => {
 const TimeSignature: React.FC<{ sig: [number, number]; staffHeight: number }> = memo(({ sig, staffHeight }) => {
   return (
     <div
-      className="absolute flex flex-col items-center justify-center font-mono font-bold text-crimson/60 select-none"
+      className="absolute flex flex-col items-center justify-center font-mono font-bold text-crimson/60 select-none bg-bg-steel"
       style={{
-        left: '2px',
+        left: '0px',
         top: 0,
         height: `${staffHeight}px`,
-        width: '16px',
+        width: '20px',
         zIndex: 5,
-        fontSize: '13px',
-        lineHeight: '1.1',
+        fontSize: '14px',
+        lineHeight: '1',
       }}
     >
       <span>{sig[0]}</span>
-      <span>{sig[1]}</span>
+      <span className="mt-1">{sig[1]}</span>
     </div>
   );
 });
@@ -536,7 +536,7 @@ const MeasureBlock: React.FC<{
   showSignature: boolean;
 }> = memo(({ measure, numStrings, isLast, showSignature }) => {
   const totalBeatWidth = measure.beats.reduce((sum, b) => sum + beatWidth(b.type), 0);
-  const sigPad = showSignature && measure.signature ? 20 : 0;
+  const sigPad = showSignature && measure.signature ? 24 : 0;
   const minWidth = 60;
   const measWidth = Math.max(totalBeatWidth + 16 + sigPad, minWidth);
   const staffHeight = (numStrings - 1) * STRING_SPACING;
@@ -579,23 +579,24 @@ const MeasureBlock: React.FC<{
           {/* Palm mute spans */}
           {pmSpans.map((span, i) => {
             const left = contentLeft + beatPositions[span.startIdx] * contentWidth;
-            const right = contentLeft + beatPositions[span.endIdx] * contentWidth;
-            const w = right - left;
+            // Extend to end of last beat + its width, or measure end
+            const lastBeatEnd = span.endIdx < measure.beats.length - 1
+              ? beatPositions[span.endIdx + 1] * contentWidth
+              : contentWidth;
+            const w = Math.max(lastBeatEnd - beatPositions[span.startIdx] * contentWidth, 30);
             return (
               <div
                 key={`pm-${i}`}
                 className="absolute flex items-center"
-                style={{ left: `${left}px`, width: `${Math.max(w, 20)}px`, top: '2px' }}
+                style={{ left: `${left}px`, width: `${w}px`, top: '2px' }}
               >
-                <span className="text-bone/40 font-mono text-[8px] leading-none whitespace-nowrap select-none">
+                <span className="text-bone/40 font-mono text-[9px] leading-none whitespace-nowrap select-none">
                   P.M.
                 </span>
-                {w > 24 && (
-                  <div
-                    className="flex-1 ml-1 border-b border-dashed border-bone/20"
-                    style={{ height: '1px' }}
-                  />
-                )}
+                <div
+                  className="flex-1 ml-1 border-b border-dashed border-bone/25"
+                  style={{ height: '1px' }}
+                />
               </div>
             );
           })}
