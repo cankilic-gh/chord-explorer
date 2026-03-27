@@ -319,7 +319,7 @@ const App: React.FC = () => {
               scaleType={scaleType}
               activeExtensions={activeExtensions}
               onToggle={() => setScaleActive(!scaleActive)}
-              onScaleTypeChange={setScaleType}
+              onScaleTypeChange={(type) => { setScaleType(type); setActiveExtensions([]); }}
               onToggleExtension={handleToggleExtension}
             />
 

@@ -5,8 +5,15 @@ export const SCALE_TYPE_IDS = [
   'blues',
   'natural_minor',
   'major',
+  'harmonic_minor',
+  'melodic_minor',
   'dorian',
+  'phrygian',
+  'lydian',
   'mixolydian',
+  'locrian',
+  'whole_tone',
+  'diminished',
 ] as const;
 
 export type ScaleType = typeof SCALE_TYPE_IDS[number];
@@ -49,17 +56,59 @@ export const SCALE_TYPES: Record<ScaleType, ScaleFormula> = {
     intervals: [0, 2, 4, 5, 7, 9, 11],
     intervalNames: ['1', '2', '3', '4', '5', '6', '7'],
   },
+  harmonic_minor: {
+    name: 'Harmonic Minor',
+    shortName: 'Harm m',
+    intervals: [0, 2, 3, 5, 7, 8, 11],
+    intervalNames: ['1', '2', 'b3', '4', '5', 'b6', '7'],
+  },
+  melodic_minor: {
+    name: 'Melodic Minor',
+    shortName: 'Mel m',
+    intervals: [0, 2, 3, 5, 7, 9, 11],
+    intervalNames: ['1', '2', 'b3', '4', '5', '6', '7'],
+  },
   dorian: {
     name: 'Dorian',
     shortName: 'Dorian',
     intervals: [0, 2, 3, 5, 7, 9, 10],
     intervalNames: ['1', '2', 'b3', '4', '5', '6', 'b7'],
   },
+  phrygian: {
+    name: 'Phrygian',
+    shortName: 'Phryg',
+    intervals: [0, 1, 3, 5, 7, 8, 10],
+    intervalNames: ['1', 'b2', 'b3', '4', '5', 'b6', 'b7'],
+  },
+  lydian: {
+    name: 'Lydian',
+    shortName: 'Lydian',
+    intervals: [0, 2, 4, 6, 7, 9, 11],
+    intervalNames: ['1', '2', '3', '#4', '5', '6', '7'],
+  },
   mixolydian: {
     name: 'Mixolydian',
     shortName: 'Mixo',
     intervals: [0, 2, 4, 5, 7, 9, 10],
     intervalNames: ['1', '2', '3', '4', '5', '6', 'b7'],
+  },
+  locrian: {
+    name: 'Locrian',
+    shortName: 'Locr',
+    intervals: [0, 1, 3, 5, 6, 8, 10],
+    intervalNames: ['1', 'b2', 'b3', '4', 'b5', 'b6', 'b7'],
+  },
+  whole_tone: {
+    name: 'Whole Tone',
+    shortName: 'W.Tone',
+    intervals: [0, 2, 4, 6, 8, 10],
+    intervalNames: ['1', '2', '3', '#4', '#5', 'b7'],
+  },
+  diminished: {
+    name: 'Diminished (H-W)',
+    shortName: 'Dim',
+    intervals: [0, 1, 3, 4, 6, 7, 9, 10],
+    intervalNames: ['1', 'b2', 'b3', '3', 'b5', '5', '6', 'b7'],
   },
 };
 
@@ -87,7 +136,7 @@ export const CHORD_TO_SCALE: Record<string, ScaleType> = {
   'Major': 'pentatonic_major',
   'maj7': 'pentatonic_major',
   '7': 'mixolydian',
-  'dim': 'natural_minor',
-  'dim7': 'natural_minor',
-  'aug': 'major',
+  'dim': 'locrian',
+  'dim7': 'diminished',
+  'aug': 'whole_tone',
 };
