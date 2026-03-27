@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@coderline/alphatab": "^1.8.1",
     "@tailwindcss/vite": "^4.2.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.35.2",

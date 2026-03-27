@@ -99,33 +99,70 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
 
         {/* Content */}
         {selectedSong ? (
-          // Tab View (placeholder for alphaTab)
-          <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
-            <div className="w-full max-w-2xl text-center">
-              <div className="w-20 h-20 rounded-full bg-crimson/10 border border-crimson/20 flex items-center justify-center mx-auto mb-6">
-                <Music className="w-10 h-10 text-crimson/50" />
-              </div>
-              <h3 className="text-2xl font-gothic text-bone mb-2">{selectedSong.title}</h3>
-              <p className="text-bone/40 font-mono mb-8">{selectedSong.artist}</p>
-
-              <div className="bg-bg-abyss/50 border border-crimson/10 rounded-xl p-8 mb-6">
-                <p className="text-bone/30 text-sm font-mono mb-4">
-                  Tab renderer will be integrated here with alphaTab.
-                </p>
-                <p className="text-bone/20 text-xs font-mono">
-                  Song ID: {selectedSong.songId}
-                </p>
+          // Song Detail + Track List
+          <div className="flex-1 overflow-y-auto p-6" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(220,20,60,0.3) transparent' }}>
+            <div className="w-full max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-gothic text-bone mb-1">{selectedSong.title}</h3>
+                <p className="text-bone/40 font-mono text-sm">{selectedSong.artist}</p>
               </div>
 
-              <a
-                href={`https://www.songsterr.com/a/wsa/${selectedSong.artist.toLowerCase().replace(/\s+/g, '-')}-${selectedSong.title.toLowerCase().replace(/\s+/g, '-')}-tab-s${selectedSong.songId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-crimson/10 border border-crimson/20 text-crimson text-sm font-mono hover:bg-crimson/20 transition-colors"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View on Songsterr
-              </a>
+              {/* Tracks */}
+              <div className="space-y-2 mb-8">
+                <h4 className="text-xs font-mono text-bone/30 uppercase tracking-wider mb-3">Available Tracks</h4>
+                {selectedSong.tracks
+                  .filter(t => t.difficulty !== undefined)
+                  .sort((a, b) => (b.views || 0) - (a.views || 0))
+                  .map((track, i) => (
+                    <a
+                      key={i}
+                      href={`https://www.songsterr.com/a/wsa/${selectedSong.artist.toLowerCase().replace(/\s+/g, '-')}-${selectedSong.title.toLowerCase().replace(/\s+/g, '-')}-tab-s${selectedSong.songId}t${selectedSong.tracks.indexOf(track)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-3 bg-bone/[0.03] border border-bone/[0.06] rounded-lg hover:border-crimson/30 hover:bg-crimson/5 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold ${
+                          track.instrument.toLowerCase().includes('bass') ? 'bg-purple-dark/20 text-purple-dark' :
+                          track.instrument.toLowerCase().includes('drum') ? 'bg-ember/20 text-ember' :
+                          'bg-crimson/15 text-crimson'
+                        }`}>
+                          {track.instrument.toLowerCase().includes('bass') ? 'B' :
+                           track.instrument.toLowerCase().includes('drum') ? 'D' : 'G'}
+                        </div>
+                        <div>
+                          <p className="text-bone text-sm group-hover:text-crimson transition-colors">{track.name}</p>
+                          <p className="text-bone/30 text-xs font-mono">{track.instrument}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {track.difficulty && (
+                          <div className="flex gap-0.5">
+                            {[...Array(6)].map((_, d) => (
+                              <div key={d} className={`w-1.5 h-3 rounded-sm ${d < track.difficulty! ? 'bg-crimson/60' : 'bg-bone/10'}`} />
+                            ))}
+                          </div>
+                        )}
+                        <span className="text-bone/20 text-xs font-mono w-16 text-right">
+                          {track.views ? `${(track.views / 1000).toFixed(0)}k` : ''}
+                        </span>
+                        <ExternalLink className="w-3.5 h-3.5 text-bone/10 group-hover:text-crimson/40 transition-colors" />
+                      </div>
+                    </a>
+                  ))}
+              </div>
+
+              <div className="text-center">
+                <a
+                  href={`https://www.songsterr.com/a/wsa/${selectedSong.artist.toLowerCase().replace(/\s+/g, '-')}-${selectedSong.title.toLowerCase().replace(/\s+/g, '-')}-tab-s${selectedSong.songId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-crimson/10 border border-crimson/20 text-crimson text-sm font-mono hover:bg-crimson/20 transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Open in Songsterr
+                </a>
+              </div>
             </div>
           </div>
         ) : (
