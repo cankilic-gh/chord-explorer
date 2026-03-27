@@ -54,13 +54,11 @@ const Piano: React.FC<PianoProps> = ({ notes, scaleNotes }) => {
     return set;
   }, [notes]);
 
-  // Scale notes by note name (only non-chord-tone scale notes get rings)
+  // Scale notes by note name (all scale notes get rings for complete pattern)
   const scaleNoteMap = useMemo(() => {
     if (!scaleNotes) return new Map<Note, ScaleNote>();
     const map = new Map<Note, ScaleNote>();
-    scaleNotes.forEach(sn => {
-      if (!sn.isChordTone) map.set(sn.note, sn);
-    });
+    scaleNotes.forEach(sn => map.set(sn.note, sn));
     return map;
   }, [scaleNotes]);
 
@@ -106,7 +104,7 @@ const Piano: React.FC<PianoProps> = ({ notes, scaleNotes }) => {
           const isPressed = pressedKey === keyId;
           const isActive = activeKeys.has(keyId);
           const isGhost = noteInfo && !isActive;
-          const hasScaleRing = !noteInfo && scaleNoteMap.has(key.note as Note);
+          const hasScaleRing = scaleNoteMap.has(key.note as Note);
           return (
             <div
               key={`${key.note}${key.octave}-${index}`}
@@ -116,14 +114,19 @@ const Piano: React.FC<PianoProps> = ({ notes, scaleNotes }) => {
               }`}
             >
               {noteInfo ? (
-                <div
-                  className="w-3 h-3 md:w-4 md:h-4 rounded-full pointer-events-none mb-4"
-                  style={{
-                    backgroundColor: color,
-                    opacity: isGhost ? 0.3 : 1,
-                    boxShadow: isGhost ? 'none' : `0 0 8px ${color}60, 0 0 16px ${color}20`,
-                  }}
-                />
+                <div className="relative pointer-events-none mb-4">
+                  <div
+                    className="w-3 h-3 md:w-4 md:h-4 rounded-full"
+                    style={{
+                      backgroundColor: color,
+                      opacity: isGhost ? 0.3 : 1,
+                      boxShadow: isGhost ? 'none' : `0 0 8px ${color}60, 0 0 16px ${color}20`,
+                    }}
+                  />
+                  {hasScaleRing && (
+                    <div className="absolute -inset-1 rounded-full pointer-events-none" style={{ border: `1.5px solid ${SCALE_COLOR}`, opacity: 0.5 }} />
+                  )}
+                </div>
               ) : hasScaleRing ? (
                 renderScaleRing(key.note as Note, false)
               ) : null}
@@ -163,7 +166,7 @@ const Piano: React.FC<PianoProps> = ({ notes, scaleNotes }) => {
           const isPressed = pressedKey === keyId;
           const isActive = activeKeys.has(keyId);
           const isGhost = noteInfo && !isActive;
-          const hasScaleRing = !noteInfo && scaleNoteMap.has(key.note as Note);
+          const hasScaleRing = scaleNoteMap.has(key.note as Note);
           return (
             <div key={`${key.note}${key.octave}-${index}`}
                  onClick={() => handleKeyPress(key.note, key.octave)}
@@ -172,14 +175,19 @@ const Piano: React.FC<PianoProps> = ({ notes, scaleNotes }) => {
                    isPressed ? 'bg-bg-abyss scale-[0.98]' : 'bg-[#0a0a12] hover:bg-[#151520]'
                  }`}>
               {noteInfo ? (
-                <div
-                  className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full pointer-events-none"
-                  style={{
-                    backgroundColor: color,
-                    opacity: isGhost ? 0.3 : 1,
-                    boxShadow: isGhost ? 'none' : `0 0 6px ${color}50, 0 0 12px ${color}20`,
-                  }}
-                />
+                <div className="relative pointer-events-none">
+                  <div
+                    className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full"
+                    style={{
+                      backgroundColor: color,
+                      opacity: isGhost ? 0.3 : 1,
+                      boxShadow: isGhost ? 'none' : `0 0 6px ${color}50, 0 0 12px ${color}20`,
+                    }}
+                  />
+                  {hasScaleRing && (
+                    <div className="absolute -inset-0.5 rounded-full pointer-events-none" style={{ border: `1.5px solid ${SCALE_COLOR}`, opacity: 0.5 }} />
+                  )}
+                </div>
               ) : hasScaleRing ? (
                 renderScaleRing(key.note as Note, true)
               ) : null}

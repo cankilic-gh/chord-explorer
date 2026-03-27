@@ -80,18 +80,12 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, scaleNotes, 
     return dots;
   }, [chordNotes, activePositions]);
 
-  // Scale dots (only non-chord-tone scale notes)
+  // Scale dots (ALL scale notes including chord tones, for complete pattern visibility)
   const scaleDots = useMemo(() => {
     if (!scaleNotes || scaleNotes.length === 0) return [];
 
-    // Build set of chord note names to exclude
-    const chordNoteNames = new Set<Note>();
-    if (chordNotes) chordNotes.forEach(n => chordNoteNames.add(n.note));
-
     const scaleNoteMap = new Map<Note, ScaleNote>();
-    scaleNotes.forEach(sn => {
-      if (!chordNoteNames.has(sn.note)) scaleNoteMap.set(sn.note, sn);
-    });
+    scaleNotes.forEach(sn => scaleNoteMap.set(sn.note, sn));
 
     const dots: ScaleDot[] = [];
     for (let string = 0; string < STRING_COUNT; string++) {
@@ -112,7 +106,7 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, scaleNotes, 
       }
     }
     return dots;
-  }, [scaleNotes, chordNotes, activePositions]);
+  }, [scaleNotes, activePositions]);
 
   return (
     <div className={`bg-bg-steel border rounded-xl p-3 md:p-6 select-none transition-all duration-200 shadow-[0_0_30px_rgba(0,0,0,0.5)] ${isPreview ? 'border-crimson ring-1 ring-crimson/30' : 'border-crimson/10'}`}>
