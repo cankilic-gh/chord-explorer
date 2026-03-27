@@ -37,10 +37,18 @@ const INTERVAL_COLORS: Record<string, string> = {
 const Piano: React.FC<PianoProps> = ({ notes }) => {
   const [pressedKey, setPressedKey] = useState<string | null>(null);
 
+  // Map note names to their interval info (for ghost dots on all matching keys)
   const noteMap = useMemo(() => {
     const map = new Map<Note, NoteWithInterval>();
     notes.forEach(n => map.set(n.note, n));
     return map;
+  }, [notes]);
+
+  // Set of exact note+octave keys that are in the active voicing (full opacity)
+  const activeKeys = useMemo(() => {
+    const set = new Set<string>();
+    notes.forEach(n => set.add(`${n.note}${n.octave}`));
+    return set;
   }, [notes]);
 
   const whiteKeys = useMemo(() => PIANO_KEYS.filter(k => k.type === 'white'), []);
@@ -66,6 +74,8 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
           const color = noteInfo ? getIntervalColor(noteInfo.interval) : '';
           const keyId = `${key.note}${key.octave}`;
           const isPressed = pressedKey === keyId;
+          const isActive = activeKeys.has(keyId);
+          const isGhost = noteInfo && !isActive;
           return (
             <div
               key={`${key.note}${key.octave}-${index}`}
@@ -77,7 +87,11 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
               {noteInfo && (
                 <div
                   className="w-3 h-3 md:w-4 md:h-4 rounded-full pointer-events-none mb-4"
-                  style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}60, 0 0 16px ${color}20` }}
+                  style={{
+                    backgroundColor: color,
+                    opacity: isGhost ? 0.15 : 1,
+                    boxShadow: isGhost ? 'none' : `0 0 8px ${color}60, 0 0 16px ${color}20`,
+                  }}
                 ></div>
               )}
               <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-bg-abyss/30 font-mono font-bold pointer-events-none">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
@@ -114,6 +128,8 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
 
           const keyId = `${key.note}${key.octave}`;
           const isPressed = pressedKey === keyId;
+          const isActive = activeKeys.has(keyId);
+          const isGhost = noteInfo && !isActive;
           return (
             <div key={`${key.note}${key.octave}-${index}`}
                  onClick={() => handleKeyPress(key.note, key.octave)}
@@ -124,7 +140,11 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
               {noteInfo && (
                 <div
                   className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full pointer-events-none"
-                  style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}50, 0 0 12px ${color}20` }}
+                  style={{
+                    backgroundColor: color,
+                    opacity: isGhost ? 0.15 : 1,
+                    boxShadow: isGhost ? 'none' : `0 0 6px ${color}50, 0 0 12px ${color}20`,
+                  }}
                 ></div>
               )}
             </div>
