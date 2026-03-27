@@ -1,83 +1,64 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { gunzipSync } from 'zlib';
 
-// Fetches tab data for a specific song/track from Songsterr's CDN
-// Requires: songId, revisionId, image (from revision API), partId (track index)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { songId, revisionId, image, partId } = req.query;
+  const { songId, partId } = req.query;
 
   if (!songId || !partId) {
     return res.status(400).json({ error: 'Missing songId or partId' });
   }
 
   try {
-    // Step 1: If no revisionId/image provided, fetch from revision API
-    let revId = revisionId as string;
-    let img = image as string;
+    // Step 1: Get latest published revision
+    const metaRes = await fetch(
+      `https://www.songsterr.com/api/meta/${songId}/revisions`
+    );
+    if (!metaRes.ok) {
+      return res.status(404).json({ error: 'Song not found' });
+    }
+    const revisions = await metaRes.json();
+    const revision = revisions.find((r: { isOnModeration: boolean }) => !r.isOnModeration);
+    if (!revision) {
+      return res.status(404).json({ error: 'No published revision found' });
+    }
+    const revId = revision.revisionId;
 
-    if (!revId || !img) {
-      const metaRes = await fetch(
-        `https://www.songsterr.com/api/meta/${songId}/revisions`
-      );
-      if (!metaRes.ok) {
-        return res.status(404).json({ error: 'Song not found' });
-      }
-      const revisions = await metaRes.json();
-      // Find first non-moderation revision
-      const revision = revisions.find((r: { isOnModeration: boolean }) => !r.isOnModeration);
-      if (!revision) {
-        return res.status(404).json({ error: 'No published revision found' });
-      }
-      revId = revision.revisionId.toString();
+    // Step 2: Get image hash from SSR page
+    const pageRes = await fetch(
+      `https://www.songsterr.com/a/wa/song?id=${songId}`,
+      { redirect: 'follow' }
+    );
+    const html = await pageRes.text();
 
-      // Fetch full revision data from SSR page to get image field
-      const pageRes = await fetch(
-        `https://www.songsterr.com/a/wa/song?id=${songId}`,
-        { redirect: 'follow' }
-      );
-      const pageUrl = pageRes.url;
-      const fullPageRes = await fetch(pageUrl);
-      const html = await fullPageRes.text();
-      const jsonMatch = html.match(/application\/json[^>]*>(\{.*?\})<\/script>/s);
-      if (jsonMatch) {
-        try {
-          const ssrData = JSON.parse(jsonMatch[1]);
-          img = ssrData?.meta?.current?.image || '';
-        } catch {
-          img = '';
-        }
-      }
+    let image = '';
+    const match = html.match(/"image"\s*:\s*"([^"]+)"/);
+    if (match) {
+      image = match[1];
     }
 
-    // Step 2: Fetch tab data from CDN
-    const cdnDomain = 'd3d3l6a6rcgkaf';
-    let url: string;
-    if (img) {
-      url = `https://${cdnDomain}.cloudfront.net/${songId}/${revId}/${img}/${partId}.json`;
-    } else {
-      // Fallback without image
-      url = `https://d3rrfvx08uyjp1.cloudfront.net/part/${revId}/${partId}`;
+    if (!image) {
+      return res.status(404).json({ error: 'Could not resolve tab image hash' });
     }
 
-    const tabRes = await fetch(url, {
-      headers: { 'Accept-Encoding': 'gzip, deflate' },
-    });
+    // Step 3: Fetch tab data from CDN
+    const url = `https://d3d3l6a6rcgkaf.cloudfront.net/${songId}/${revId}/${image}/${partId}.json`;
+    const tabRes = await fetch(url);
 
     if (!tabRes.ok) {
-      return res.status(tabRes.status).json({ error: 'Tab data not available' });
+      return res.status(tabRes.status).json({ error: 'Tab data not available', url });
     }
 
-    const buffer = await tabRes.arrayBuffer();
+    const buffer = Buffer.from(await tabRes.arrayBuffer());
 
-    // Try to decompress if gzipped
-    let data: string;
+    // Decompress gzipped response
+    let jsonStr: string;
     try {
-      const { gunzipSync } = await import('zlib').then(m => m);
-      data = gunzipSync(Buffer.from(buffer)).toString('utf-8');
+      jsonStr = gunzipSync(buffer).toString('utf-8');
     } catch {
-      data = new TextDecoder().decode(buffer);
+      jsonStr = buffer.toString('utf-8');
     }
 
-    const tabData = JSON.parse(data);
+    const tabData = JSON.parse(jsonStr);
     res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
     return res.status(200).json(tabData);
   } catch (err) {
