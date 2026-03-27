@@ -1,10 +1,26 @@
 
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState, memo } from 'react';
+
+// ─── Raw API Interfaces ───────────────────────────────────────────────
+
+interface BendPoint {
+  offset: number;
+  value: number;
+}
 
 interface TabNote {
   fret: number;
   string: number;
   rest?: boolean;
+  bend?: { points: BendPoint[] };
+  slide?: 'legato' | 'shift';
+  hp?: string; // "h" = hammer-on, "p" = pull-off
+  staccato?: boolean;
+  ghost?: boolean;
+  dead?: boolean;
+  tie?: boolean;
+  vibrato?: boolean;
+  letRing?: boolean;
 }
 
 interface TabBeat {
@@ -12,6 +28,17 @@ interface TabBeat {
   type: number;
   rest?: boolean;
   duration: [number, number];
+  palmMute?: boolean;
+  beamStart?: boolean;
+  beamStop?: boolean;
+  velocity?: string;
+  letRing?: boolean;
+  vibrato?: boolean;
+  tuplet?: number;
+  tupletStart?: boolean;
+  tupletStop?: boolean;
+  dots?: number;
+  pickStroke?: string; // "down" | "up"
 }
 
 interface TabVoice {
@@ -39,11 +66,37 @@ interface TabRendererProps {
   data: TabData;
 }
 
-// Processed beat: positions of fret numbers on strings
+// ─── Processed Data Interfaces ────────────────────────────────────────
+
+interface ProcessedNoteInfo {
+  fret: number;
+  bend: boolean;
+  bendValue: number; // semitones
+  slide: 'legato' | 'shift' | null;
+  hp: string | null; // "h" or "p"
+  staccato: boolean;
+  ghost: boolean;
+  dead: boolean;
+  tie: boolean;
+  vibrato: boolean;
+  letRing: boolean;
+}
+
 interface ProcessedBeat {
-  frets: Map<number, number>; // string index -> fret number
+  notes: Map<number, ProcessedNoteInfo>; // string index -> note info
   isRest: boolean;
-  type: number; // note duration type
+  type: number;
+  palmMute: boolean;
+  beamStart: boolean;
+  beamStop: boolean;
+  velocity: string | null;
+  letRing: boolean;
+  vibrato: boolean;
+  tuplet: number | null;
+  tupletStart: boolean;
+  tupletStop: boolean;
+  dots: number;
+  pickStroke: string | null;
 }
 
 interface ProcessedMeasure {
@@ -58,44 +111,96 @@ interface TabRow {
   marker?: string;
 }
 
+// ─── Constants ────────────────────────────────────────────────────────
+
 const STRING_LABELS_6 = ['e', 'B', 'G', 'D', 'A', 'E'];
 const STRING_LABELS_4 = ['G', 'D', 'A', 'E'];
 
 const MEASURES_PER_ROW = 4;
+const STRING_SPACING = 22;
+const LABEL_WIDTH = 24;
+const ANNOTATION_TOP_HEIGHT = 20; // space above staff for P.M., let ring, etc.
+const ANNOTATION_BOTTOM_HEIGHT = 20; // space below staff for rhythm/beams
 
-// How wide each beat column should be based on note type
 const beatWidth = (type: number): number => {
-  if (type <= 1) return 64;   // whole
-  if (type <= 2) return 48;   // half
-  if (type <= 4) return 36;   // quarter
-  if (type <= 8) return 28;   // eighth
-  return 24;                  // sixteenth+
+  if (type <= 1) return 64;
+  if (type <= 2) return 48;
+  if (type <= 4) return 36;
+  if (type <= 8) return 28;
+  return 24;
 };
 
-const STRING_SPACING = 22; // px between strings
-const LABEL_WIDTH = 24;    // left label column
+// ─── Data Processing ──────────────────────────────────────────────────
 
 const processMeasures = (data: TabData): ProcessedMeasure[] => {
   return data.measures.map((measure, idx) => {
     const beats: ProcessedBeat[] = [];
 
     if (measure.rest || !measure.voices?.[0]?.beats?.length) {
-      // Empty/rest measure: single rest beat spanning the whole measure
-      beats.push({ frets: new Map(), isRest: true, type: 1 });
+      beats.push({
+        notes: new Map(),
+        isRest: true,
+        type: 1,
+        palmMute: false,
+        beamStart: false,
+        beamStop: false,
+        velocity: null,
+        letRing: false,
+        vibrato: false,
+        tuplet: null,
+        tupletStart: false,
+        tupletStop: false,
+        dots: 0,
+        pickStroke: null,
+      });
     } else {
       for (const beat of measure.voices[0].beats) {
-        const frets = new Map<number, number>();
+        const noteMap = new Map<number, ProcessedNoteInfo>();
+        let hasBeatLetRing = !!beat.letRing;
+
         if (!beat.rest && beat.notes) {
           for (const note of beat.notes) {
-            if (note.fret !== undefined && note.string !== undefined && !note.rest) {
-              frets.set(note.string, note.fret);
-            }
+            if (note.string === undefined) continue;
+            if (note.rest && !note.dead) continue;
+
+            const hasBend = !!note.bend && Array.isArray(note.bend.points) && note.bend.points.length > 0;
+            const bendMax = hasBend
+              ? Math.max(...note.bend!.points.map(p => p.value))
+              : 0;
+
+            if (note.letRing) hasBeatLetRing = true;
+
+            noteMap.set(note.string, {
+              fret: note.dead ? -1 : (note.fret ?? 0),
+              bend: hasBend,
+              bendValue: bendMax,
+              slide: note.slide ?? null,
+              hp: note.hp ?? null,
+              staccato: !!note.staccato,
+              ghost: !!note.ghost,
+              dead: !!note.dead,
+              tie: !!note.tie,
+              vibrato: !!note.vibrato,
+              letRing: !!note.letRing,
+            });
           }
         }
+
         beats.push({
-          frets,
-          isRest: !!beat.rest || frets.size === 0,
+          notes: noteMap,
+          isRest: !!beat.rest || noteMap.size === 0,
           type: beat.type || 4,
+          palmMute: !!beat.palmMute,
+          beamStart: !!beat.beamStart,
+          beamStop: !!beat.beamStop,
+          velocity: beat.velocity ?? null,
+          letRing: hasBeatLetRing,
+          vibrato: !!beat.vibrato,
+          tuplet: beat.tuplet ?? null,
+          tupletStart: !!beat.tupletStart,
+          tupletStop: !!beat.tupletStop,
+          dots: beat.dots ?? 0,
+          pickStroke: beat.pickStroke ?? null,
         });
       }
     }
@@ -109,30 +214,75 @@ const processMeasures = (data: TabData): ProcessedMeasure[] => {
   });
 };
 
-// A single fret number displayed on a string line
-const FretNumber: React.FC<{ fret: number }> = ({ fret }) => {
-  const text = fret.toString();
-  const isWide = text.length > 1;
-  return (
-    <span
-      className={`absolute text-bone font-mono font-bold leading-none select-none ${
-        isWide ? 'text-[11px]' : 'text-xs'
-      }`}
-      style={{
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 2,
-      }}
-    >
-      {text}
-    </span>
-  );
-};
+// ─── Fret Number Display ──────────────────────────────────────────────
 
-// Background pill behind fret numbers to occlude the line
-const FretBg: React.FC<{ fret: number }> = ({ fret }) => {
-  const w = fret.toString().length > 1 ? 18 : 12;
+const FretDisplay: React.FC<{ note: ProcessedNoteInfo }> = memo(({ note }) => {
+  if (note.dead) {
+    return (
+      <span
+        className="absolute text-bone/60 font-mono font-bold text-xs leading-none select-none"
+        style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 2 }}
+      >
+        x
+      </span>
+    );
+  }
+
+  const text = note.fret.toString();
+  const isWide = text.length > 1;
+  const isGhost = note.ghost;
+  const display = isGhost ? `(${text})` : text;
+
+  return (
+    <>
+      <span
+        className={`absolute font-mono font-bold leading-none select-none ${
+          isGhost ? 'text-bone/40' : note.tie ? 'text-bone/25' : 'text-bone'
+        } ${isWide || isGhost ? 'text-[10px]' : 'text-xs'}`}
+        style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 2 }}
+      >
+        {display}
+      </span>
+      {/* Staccato dot above */}
+      {note.staccato && (
+        <span
+          className="absolute text-ember text-[8px] leading-none select-none"
+          style={{ top: '-6px', left: '50%', transform: 'translateX(-50%)', zIndex: 3 }}
+        >
+          .
+        </span>
+      )}
+      {/* Bend indicator */}
+      {note.bend && (
+        <span
+          className="absolute text-crimson font-mono text-[9px] font-bold leading-none select-none"
+          style={{ top: '50%', right: '-7px', transform: 'translateY(-50%)', zIndex: 3 }}
+        >
+          {note.bendValue >= 2 ? 'full' : note.bendValue === 1 ? '1/2' : 'b'}
+        </span>
+      )}
+      {/* Vibrato after fret */}
+      {note.vibrato && !note.bend && (
+        <span
+          className="absolute text-bone/40 font-mono text-[9px] leading-none select-none"
+          style={{ top: '50%', right: '-8px', transform: 'translateY(-50%)', zIndex: 3 }}
+        >
+          ~
+        </span>
+      )}
+    </>
+  );
+});
+
+FretDisplay.displayName = 'FretDisplay';
+
+// Background pill behind fret numbers
+const FretBg: React.FC<{ note: ProcessedNoteInfo }> = memo(({ note }) => {
+  const text = note.dead ? 'x' : note.fret.toString();
+  const isGhost = note.ghost;
+  const displayLen = isGhost ? text.length + 2 : text.length;
+  const w = displayLen > 1 ? Math.min(displayLen * 7, 26) : 12;
+
   return (
     <span
       className="absolute bg-bg-steel rounded-sm"
@@ -146,23 +296,69 @@ const FretBg: React.FC<{ fret: number }> = ({ fret }) => {
       }}
     />
   );
-};
+});
 
-// Single beat column
+FretBg.displayName = 'FretBg';
+
+// ─── Inter-beat connectors (slide, hammer-on, pull-off) ───────────────
+
+const InterBeatConnector: React.FC<{
+  note: ProcessedNoteInfo;
+}> = memo(({ note }) => {
+  if (!note.slide && !note.hp) return null;
+
+  let symbol = '';
+  let color = 'text-bone/30';
+
+  if (note.hp === 'h') {
+    symbol = 'h';
+    color = 'text-ember/50';
+  } else if (note.hp === 'p') {
+    symbol = 'p';
+    color = 'text-ember/50';
+  } else if (note.slide === 'legato' || note.slide === 'shift') {
+    symbol = '/';
+    color = 'text-bone/30';
+  }
+
+  return (
+    <span
+      className={`absolute ${color} font-mono text-[8px] leading-none select-none`}
+      style={{ top: '50%', left: '-4px', transform: 'translateY(-50%)', zIndex: 4 }}
+    >
+      {symbol}
+    </span>
+  );
+});
+
+InterBeatConnector.displayName = 'InterBeatConnector';
+
+// ─── Beat Column ──────────────────────────────────────────────────────
+
 const BeatColumn: React.FC<{
   beat: ProcessedBeat;
   numStrings: number;
   width: number;
-}> = ({ beat, numStrings, width }) => {
+}> = memo(({ beat, numStrings, width }) => {
   return (
     <div
       className="relative flex-shrink-0"
       style={{ width: `${width}px`, height: `${(numStrings - 1) * STRING_SPACING}px` }}
     >
-      {/* Fret numbers positioned on each string */}
+      {/* Pick stroke indicator at top */}
+      {beat.pickStroke && (
+        <div
+          className="absolute text-bone/30 font-mono text-[9px] leading-none select-none"
+          style={{ top: '-14px', left: '50%', transform: 'translateX(-50%)' }}
+        >
+          {beat.pickStroke === 'down' ? '\u2193' : '\u2191'}
+        </div>
+      )}
+
+      {/* Notes on strings */}
       {Array.from({ length: numStrings }, (_, sIdx) => {
-        const fret = beat.frets.get(sIdx);
-        if (fret === undefined) return null;
+        const noteInfo = beat.notes.get(sIdx);
+        if (!noteInfo) return null;
         return (
           <div
             key={sIdx}
@@ -175,41 +371,268 @@ const BeatColumn: React.FC<{
               transform: 'translateX(-50%)',
             }}
           >
-            <FretBg fret={fret} />
-            <FretNumber fret={fret} />
+            <FretBg note={noteInfo} />
+            <FretDisplay note={noteInfo} />
+            <InterBeatConnector note={noteInfo} />
           </div>
         );
       })}
     </div>
   );
+});
+
+BeatColumn.displayName = 'BeatColumn';
+
+// ─── Palm Mute / Let Ring Span Renderer ───────────────────────────────
+// Renders dashed-line spans above the staff for consecutive PM or let ring beats
+
+interface AnnotationSpan {
+  startIdx: number;
+  endIdx: number;
+  label: string;
+}
+
+const computeAnnotationSpans = (
+  beats: ProcessedBeat[],
+  accessor: (b: ProcessedBeat) => boolean,
+  label: string,
+): AnnotationSpan[] => {
+  const spans: AnnotationSpan[] = [];
+  let start = -1;
+
+  for (let i = 0; i < beats.length; i++) {
+    if (accessor(beats[i])) {
+      if (start === -1) start = i;
+    } else {
+      if (start !== -1) {
+        spans.push({ startIdx: start, endIdx: i - 1, label });
+        start = -1;
+      }
+    }
+  }
+  if (start !== -1) {
+    spans.push({ startIdx: start, endIdx: beats.length - 1, label });
+  }
+
+  return spans;
 };
 
-// A single measure block
+// ─── Tuplet Bracket Renderer ──────────────────────────────────────────
+
+interface TupletSpan {
+  startIdx: number;
+  endIdx: number;
+  number: number;
+}
+
+const computeTupletSpans = (beats: ProcessedBeat[]): TupletSpan[] => {
+  const spans: TupletSpan[] = [];
+  let start = -1;
+  let tupletNum = 3;
+
+  for (let i = 0; i < beats.length; i++) {
+    const b = beats[i];
+    if (b.tupletStart || (b.tuplet && start === -1)) {
+      start = i;
+      tupletNum = b.tuplet ?? 3;
+    }
+    if (b.tupletStop && start !== -1) {
+      spans.push({ startIdx: start, endIdx: i, number: tupletNum });
+      start = -1;
+    }
+  }
+  if (start !== -1) {
+    // Unclosed tuplet; close at last tuplet beat
+    for (let i = beats.length - 1; i >= start; i--) {
+      if (beats[i].tuplet) {
+        spans.push({ startIdx: start, endIdx: i, number: tupletNum });
+        break;
+      }
+    }
+  }
+  return spans;
+};
+
+// ─── Beam Group Renderer ──────────────────────────────────────────────
+
+interface BeamGroup {
+  startIdx: number;
+  endIdx: number;
+  level: number; // 1 = eighth, 2 = sixteenth
+}
+
+const computeBeamGroups = (beats: ProcessedBeat[]): BeamGroup[] => {
+  const groups: BeamGroup[] = [];
+  let start = -1;
+  let maxLevel = 1;
+
+  for (let i = 0; i < beats.length; i++) {
+    const b = beats[i];
+    if (b.beamStart) {
+      start = i;
+      maxLevel = b.type >= 16 ? 2 : 1;
+    }
+    if (start !== -1) {
+      if (b.type >= 16) maxLevel = 2;
+    }
+    if (b.beamStop && start !== -1) {
+      groups.push({ startIdx: start, endIdx: i, level: maxLevel });
+      start = -1;
+      maxLevel = 1;
+    }
+  }
+  return groups;
+};
+
+// ─── Cumulative beat positions helper ─────────────────────────────────
+
+const computeBeatPositions = (beats: ProcessedBeat[]): number[] => {
+  // Returns the center-x of each beat within the evenly-justified layout
+  const totalWidth = beats.reduce((s, b) => s + beatWidth(b.type), 0);
+  const positions: number[] = [];
+  let x = 0;
+  for (const b of beats) {
+    const w = beatWidth(b.type);
+    positions.push(x + w / 2);
+    x += w;
+  }
+  // Scale to fit inside the measure content area (same justify-evenly logic)
+  // Actually with justify-evenly the spacing is uniform, but for overlay positioning
+  // we need to approximate. We use fractional positioning.
+  if (totalWidth === 0) return positions;
+  return positions.map(p => p / totalWidth);
+};
+
+// ─── Time Signature Display ───────────────────────────────────────────
+
+const TimeSignature: React.FC<{ sig: [number, number]; staffHeight: number }> = memo(({ sig, staffHeight }) => {
+  return (
+    <div
+      className="absolute flex flex-col items-center justify-center font-mono font-bold text-crimson/60 select-none"
+      style={{
+        left: '2px',
+        top: 0,
+        height: `${staffHeight}px`,
+        width: '16px',
+        zIndex: 5,
+        fontSize: '13px',
+        lineHeight: '1.1',
+      }}
+    >
+      <span>{sig[0]}</span>
+      <span>{sig[1]}</span>
+    </div>
+  );
+});
+
+TimeSignature.displayName = 'TimeSignature';
+
+// ─── Measure Block ────────────────────────────────────────────────────
+
 const MeasureBlock: React.FC<{
   measure: ProcessedMeasure;
   numStrings: number;
   isLast: boolean;
-}> = ({ measure, numStrings, isLast }) => {
-  // Calculate total width for this measure
+  showSignature: boolean;
+}> = memo(({ measure, numStrings, isLast, showSignature }) => {
   const totalBeatWidth = measure.beats.reduce((sum, b) => sum + beatWidth(b.type), 0);
+  const sigPad = showSignature && measure.signature ? 20 : 0;
   const minWidth = 60;
-  const measWidth = Math.max(totalBeatWidth + 16, minWidth); // 16px padding
+  const measWidth = Math.max(totalBeatWidth + 16 + sigPad, minWidth);
+  const staffHeight = (numStrings - 1) * STRING_SPACING;
+
+  // Compute annotation data
+  const pmSpans = useMemo(
+    () => computeAnnotationSpans(measure.beats, b => b.palmMute, 'P.M.'),
+    [measure.beats],
+  );
+  const letRingSpans = useMemo(
+    () => computeAnnotationSpans(measure.beats, b => b.letRing, 'let ring'),
+    [measure.beats],
+  );
+  const tupletSpans = useMemo(() => computeTupletSpans(measure.beats), [measure.beats]);
+  const beamGroups = useMemo(() => computeBeamGroups(measure.beats), [measure.beats]);
+  const beatPositions = useMemo(() => computeBeatPositions(measure.beats), [measure.beats]);
+
+  const hasTopAnnotations = pmSpans.length > 0 || letRingSpans.length > 0 || tupletSpans.length > 0;
+  const hasBottomAnnotations = beamGroups.length > 0;
+  const topPad = hasTopAnnotations ? ANNOTATION_TOP_HEIGHT : 0;
+  const bottomPad = hasBottomAnnotations ? ANNOTATION_BOTTOM_HEIGHT : 0;
+
+  // Content area width (inside the measure, excluding padding)
+  const contentLeft = 8 + sigPad;
+  const contentWidth = measWidth - 16 - sigPad;
 
   return (
     <div className="relative flex-shrink-0" style={{ width: `${measWidth}px` }}>
       {/* Measure number */}
       <div
         className="absolute text-bone/20 font-mono select-none"
-        style={{ top: '-16px', left: '2px', fontSize: '9px', lineHeight: '1' }}
+        style={{ top: `${-16 - topPad}px`, left: '2px', fontSize: '9px', lineHeight: '1' }}
       >
         {measure.measureNumber}
       </div>
 
-      {/* Beat area with string lines behind */}
-      <div
-        className="relative"
-        style={{ height: `${(numStrings - 1) * STRING_SPACING}px` }}
-      >
+      {/* Top annotations area (P.M., let ring, tuplets) */}
+      {hasTopAnnotations && (
+        <div className="relative" style={{ height: `${topPad}px` }}>
+          {/* Palm mute spans */}
+          {pmSpans.map((span, i) => {
+            const left = contentLeft + beatPositions[span.startIdx] * contentWidth;
+            const right = contentLeft + beatPositions[span.endIdx] * contentWidth;
+            const w = right - left;
+            return (
+              <div
+                key={`pm-${i}`}
+                className="absolute flex items-center"
+                style={{ left: `${left}px`, width: `${Math.max(w, 20)}px`, top: '2px' }}
+              >
+                <span className="text-bone/40 font-mono text-[8px] leading-none whitespace-nowrap select-none">
+                  P.M.
+                </span>
+                {w > 24 && (
+                  <div
+                    className="flex-1 ml-1 border-b border-dashed border-bone/20"
+                    style={{ height: '1px' }}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          {/* Let ring spans */}
+          {letRingSpans.map((span, i) => {
+            const left = contentLeft + beatPositions[span.startIdx] * contentWidth;
+            const right = contentLeft + beatPositions[span.endIdx] * contentWidth;
+            const w = right - left;
+            return (
+              <div
+                key={`lr-${i}`}
+                className="absolute flex items-center"
+                style={{ left: `${left}px`, width: `${Math.max(w, 30)}px`, top: pmSpans.length > 0 ? '12px' : '2px' }}
+              >
+                <span className="text-bone/30 font-mono text-[7px] italic leading-none whitespace-nowrap select-none">
+                  let ring
+                </span>
+                {w > 36 && (
+                  <div
+                    className="flex-1 ml-1 border-b border-dashed border-bone/15"
+                    style={{ height: '1px' }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Staff area with string lines */}
+      <div className="relative" style={{ height: `${staffHeight}px` }}>
+        {/* Time signature */}
+        {showSignature && measure.signature && (
+          <TimeSignature sig={measure.signature} staffHeight={staffHeight} />
+        )}
+
         {/* String lines */}
         {Array.from({ length: numStrings }, (_, sIdx) => (
           <div
@@ -219,8 +642,11 @@ const MeasureBlock: React.FC<{
           />
         ))}
 
-        {/* Beats laid out horizontally */}
-        <div className="relative flex items-start justify-evenly h-full">
+        {/* Beats */}
+        <div
+          className="relative flex items-start justify-evenly h-full"
+          style={{ marginLeft: `${sigPad}px` }}
+        >
           {measure.beats.map((beat, bIdx) => (
             <BeatColumn
               key={bIdx}
@@ -230,26 +656,101 @@ const MeasureBlock: React.FC<{
             />
           ))}
         </div>
+
+        {/* Velocity markings below the last string */}
+        {measure.beats.map((beat, bIdx) => {
+          if (!beat.velocity) return null;
+          const pos = beatPositions[bIdx];
+          return (
+            <div
+              key={`vel-${bIdx}`}
+              className="absolute text-crimson/40 font-mono italic select-none"
+              style={{
+                left: `${contentLeft + pos * contentWidth}px`,
+                top: `${staffHeight + 2}px`,
+                fontSize: '7px',
+                transform: 'translateX(-50%)',
+                lineHeight: '1',
+              }}
+            >
+              {beat.velocity}
+            </div>
+          );
+        })}
       </div>
+
+      {/* Bottom annotations area (beam brackets, tuplet brackets) */}
+      {(hasBottomAnnotations || tupletSpans.length > 0) && (
+        <div className="relative" style={{ height: `${Math.max(bottomPad, tupletSpans.length > 0 ? 14 : 0)}px` }}>
+          {/* Beam groups */}
+          {beamGroups.map((group, i) => {
+            const left = contentLeft + beatPositions[group.startIdx] * contentWidth;
+            const right = contentLeft + beatPositions[group.endIdx] * contentWidth;
+            const w = Math.max(right - left, 8);
+            return (
+              <div key={`beam-${i}`} className="absolute" style={{ left: `${left}px`, width: `${w}px`, top: '4px' }}>
+                {/* First beam line (eighth) */}
+                <div className="w-full border-b border-bone/25" style={{ height: '0px' }} />
+                {/* Second beam line (sixteenth) */}
+                {group.level >= 2 && (
+                  <div className="w-full border-b border-bone/25" style={{ marginTop: '3px', height: '0px' }} />
+                )}
+              </div>
+            );
+          })}
+
+          {/* Tuplet brackets */}
+          {tupletSpans.map((span, i) => {
+            const left = contentLeft + beatPositions[span.startIdx] * contentWidth;
+            const right = contentLeft + beatPositions[span.endIdx] * contentWidth;
+            const w = Math.max(right - left, 16);
+            const bracketTop = beamGroups.length > 0 ? 12 : 2;
+            return (
+              <div
+                key={`tup-${i}`}
+                className="absolute flex items-center"
+                style={{ left: `${left - 2}px`, width: `${w + 4}px`, top: `${bracketTop}px` }}
+              >
+                <div className="flex-1 border-t border-l border-bone/20 h-[5px]" />
+                <span className="text-bone/40 font-mono text-[8px] leading-none px-1 select-none">
+                  {span.number}
+                </span>
+                <div className="flex-1 border-t border-r border-bone/20 h-[5px]" />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Right bar line */}
       {!isLast && (
         <div
-          className="absolute top-0 right-0 border-r border-bone/15"
-          style={{ height: `${(numStrings - 1) * STRING_SPACING}px` }}
+          className="absolute right-0 border-r border-bone/15"
+          style={{ top: hasTopAnnotations ? `${topPad}px` : '0px', height: `${staffHeight}px` }}
         />
       )}
     </div>
   );
-};
+});
 
-// A complete row of measures (one "line" of tablature)
+MeasureBlock.displayName = 'MeasureBlock';
+
+// ─── Row View ─────────────────────────────────────────────────────────
+
 const TabRowView: React.FC<{
   row: TabRow;
   numStrings: number;
   stringLabels: string[];
-}> = ({ row, numStrings, stringLabels }) => {
+  showSignatureOnFirst: boolean;
+}> = memo(({ row, numStrings, stringLabels, showSignatureOnFirst }) => {
   const staffHeight = (numStrings - 1) * STRING_SPACING;
+
+  // Determine if any measure in this row has top/bottom annotations (for label alignment)
+  const hasAnyTopAnnotation = row.measures.some(m =>
+    m.beats.some(b => b.palmMute || b.letRing) ||
+    m.beats.some(b => b.tupletStart || b.tuplet),
+  );
+  const topPad = hasAnyTopAnnotation ? ANNOTATION_TOP_HEIGHT : 0;
 
   return (
     <div className="mb-8">
@@ -264,7 +765,7 @@ const TabRowView: React.FC<{
         {/* String labels column */}
         <div
           className="flex-shrink-0 relative"
-          style={{ width: `${LABEL_WIDTH}px`, height: `${staffHeight}px` }}
+          style={{ width: `${LABEL_WIDTH}px`, height: `${staffHeight}px`, marginTop: `${topPad}px` }}
         >
           {stringLabels.map((label, sIdx) => (
             <div
@@ -284,7 +785,7 @@ const TabRowView: React.FC<{
         {/* Opening bar line */}
         <div
           className="flex-shrink-0 border-r border-bone/30"
-          style={{ height: `${staffHeight}px` }}
+          style={{ height: `${staffHeight}px`, marginTop: `${topPad}px` }}
         />
 
         {/* Measures */}
@@ -295,6 +796,7 @@ const TabRowView: React.FC<{
               measure={measure}
               numStrings={numStrings}
               isLast={mIdx === row.measures.length - 1}
+              showSignature={mIdx === 0 && showSignatureOnFirst}
             />
           ))}
         </div>
@@ -302,12 +804,16 @@ const TabRowView: React.FC<{
         {/* Closing bar line */}
         <div
           className="flex-shrink-0 border-r border-bone/30"
-          style={{ height: `${staffHeight}px` }}
+          style={{ height: `${staffHeight}px`, marginTop: `${topPad}px` }}
         />
       </div>
     </div>
   );
-};
+});
+
+TabRowView.displayName = 'TabRowView';
+
+// ─── Main Renderer ────────────────────────────────────────────────────
 
 const TabRenderer: React.FC<TabRendererProps> = ({ data }) => {
   const numStrings = data.strings || 6;
@@ -315,13 +821,11 @@ const TabRenderer: React.FC<TabRendererProps> = ({ data }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [measuresPerRow, setMeasuresPerRow] = useState(MEASURES_PER_ROW);
 
-  // Responsive: recalculate measures per row based on container width
   useEffect(() => {
     if (!containerRef.current) return;
 
     const observer = new ResizeObserver((entries) => {
       const width = entries[0]?.contentRect.width ?? 800;
-      // Estimate: each measure ~120-180px, label col ~24px, bar lines ~4px
       const available = width - LABEL_WIDTH - 8;
       const perRow = Math.max(1, Math.min(8, Math.floor(available / 140)));
       setMeasuresPerRow(perRow);
@@ -334,7 +838,6 @@ const TabRenderer: React.FC<TabRendererProps> = ({ data }) => {
   const rows = useMemo(() => {
     const processed = processMeasures(data);
 
-    // Build rows respecting measuresPerRow and section markers
     const result: TabRow[] = [];
     let currentRow: ProcessedMeasure[] = [];
     let pendingMarker: string | undefined;
@@ -364,6 +867,23 @@ const TabRenderer: React.FC<TabRendererProps> = ({ data }) => {
     return result;
   }, [data, measuresPerRow]);
 
+  // Track which rows should show a time signature (on the first measure of each section,
+  // or when signature changes)
+  const rowSignatureFlags = useMemo(() => {
+    let lastSig: string | null = null;
+    return rows.map(row => {
+      const firstMeasure = row.measures[0];
+      if (firstMeasure?.signature) {
+        const sigKey = `${firstMeasure.signature[0]}/${firstMeasure.signature[1]}`;
+        if (sigKey !== lastSig) {
+          lastSig = sigKey;
+          return true;
+        }
+      }
+      return false;
+    });
+  }, [rows]);
+
   const tempo = data.automations?.tempo?.[0]?.value;
 
   return (
@@ -381,6 +901,18 @@ const TabRenderer: React.FC<TabRendererProps> = ({ data }) => {
         )}
       </div>
 
+      {/* Notation legend (compact) */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 text-[9px] font-mono text-bone/25 select-none">
+        <span>h=hammer-on</span>
+        <span>p=pull-off</span>
+        <span>/=slide</span>
+        <span>b=bend</span>
+        <span>~=vibrato</span>
+        <span>x=dead</span>
+        <span>(n)=ghost</span>
+        <span>P.M.=palm mute</span>
+      </div>
+
       {/* Tab staff rows */}
       <div
         className="overflow-x-auto pb-4"
@@ -392,6 +924,7 @@ const TabRenderer: React.FC<TabRendererProps> = ({ data }) => {
             row={row}
             numStrings={numStrings}
             stringLabels={stringLabels}
+            showSignatureOnFirst={rowSignatureFlags[rIdx]}
           />
         ))}
       </div>
