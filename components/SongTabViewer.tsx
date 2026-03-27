@@ -70,8 +70,8 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
     try {
       const data = await fetchTabData(song.songId, trackIndex);
       setTabData(data as TabData);
-    } catch {
-      setError('Failed to load tab. Try another track.');
+    } catch (err) {
+      setError(`Failed to load tab: ${err instanceof Error ? err.message : String(err)}`);
       setTabData(null);
     } finally {
       setLoadingTab(false);
@@ -147,9 +147,15 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
                 <p className="text-bone/40 font-mono text-sm">{selectedSong.artist}</p>
               </div>
 
+              {error && (
+                <div className="mb-4 p-3 bg-crimson/10 border border-crimson/20 rounded-lg">
+                  <p className="text-crimson text-sm font-mono">{error}</p>
+                </div>
+              )}
+
               {/* Tracks */}
               <div className="space-y-2 mb-8">
-                <h4 className="text-xs font-mono text-bone/30 uppercase tracking-wider mb-3">Available Tracks</h4>
+                <h4 className="text-xs font-mono text-bone/30 uppercase tracking-wider mb-3">Select a track to view tab</h4>
                 {selectedSong.tracks
                   .filter(t => t.difficulty !== undefined)
                   .sort((a, b) => (b.views || 0) - (a.views || 0))
