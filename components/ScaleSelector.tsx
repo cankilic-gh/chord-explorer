@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Music, X } from 'lucide-react';
-import { ScaleType, SCALE_TYPES, SCALE_TYPE_IDS } from '../constants/scaleData';
+import { ScaleType, SCALE_TYPES, SCALES, MODES } from '../constants/scaleData';
 import { getAvailableExtensions } from '../lib/scaleTheory';
 
 interface ScaleSelectorProps {
@@ -50,9 +50,27 @@ const ScaleSelector: React.FC<ScaleSelectorProps> = ({
             className="overflow-hidden"
           >
             <div className="mt-3 p-3 bg-bg-steel/60 border border-crimson/10 rounded-lg">
-              {/* Scale type pills */}
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {SCALE_TYPE_IDS.map((id) => (
+              {/* Scales row */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {SCALES.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => onScaleTypeChange(id)}
+                    className={`px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-all border ${
+                      scaleType === id
+                        ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+                        : 'bg-bone/5 border-bone/8 text-bone/40 hover:text-bone/60 hover:bg-bone/10'
+                    }`}
+                  >
+                    {SCALE_TYPES[id].shortName}
+                  </button>
+                ))}
+              </div>
+
+              {/* Modes row */}
+              <span className="text-[10px] text-bone/30 font-mono uppercase tracking-wider">Modes</span>
+              <div className="flex flex-wrap gap-1.5 mt-1 mb-3">
+                {MODES.map((id) => (
                   <button
                     key={id}
                     onClick={() => onScaleTypeChange(id)}

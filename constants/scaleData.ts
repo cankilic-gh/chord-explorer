@@ -112,6 +112,17 @@ export const SCALE_TYPES: Record<ScaleType, ScaleFormula> = {
   },
 };
 
+// Row 1: Scales
+export const SCALES: ScaleType[] = [
+  'pentatonic_minor', 'pentatonic_major', 'blues',
+  'harmonic_minor', 'melodic_minor', 'whole_tone', 'diminished',
+];
+
+// Row 2: Modes (church modes)
+export const MODES: ScaleType[] = [
+  'major', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'natural_minor', 'locrian',
+];
+
 export interface ExtensionNote {
   id: string;
   name: string;
