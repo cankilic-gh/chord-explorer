@@ -563,7 +563,7 @@ const MeasureBlock: React.FC<{
   const contentWidth = measWidth - 16 - sigPad;
 
   return (
-    <div className="relative flex-shrink-0" style={{ width: `${measWidth}px` }}>
+    <div className="relative flex-1 min-w-0">
       {/* Measure number */}
       <div
         className="absolute text-bone/20 font-mono select-none"
@@ -802,7 +802,7 @@ const TabRowView: React.FC<{
           />
 
           {/* Measures (fret numbers, annotations, bar lines — no string lines) */}
-          <div className="relative flex items-start" style={{ zIndex: 1 }}>
+          <div className="relative flex w-full" style={{ zIndex: 1, height: `${staffHeight}px` }}>
             {row.measures.map((measure, mIdx) => (
               <MeasureBlock
                 key={measure.measureNumber}
