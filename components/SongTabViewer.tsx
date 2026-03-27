@@ -76,7 +76,7 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
               {selectedSong ? selectedSong.title : 'Song Tabs'}
             </h2>
             {selectedSong && (
-              <span className="text-sm text-bone/40 font-mono">{selectedSong.artist.name}</span>
+              <span className="text-sm text-bone/40 font-mono">{selectedSong.artist}</span>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -106,19 +106,19 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
                 <Music className="w-10 h-10 text-crimson/50" />
               </div>
               <h3 className="text-2xl font-gothic text-bone mb-2">{selectedSong.title}</h3>
-              <p className="text-bone/40 font-mono mb-8">{selectedSong.artist.name}</p>
+              <p className="text-bone/40 font-mono mb-8">{selectedSong.artist}</p>
 
               <div className="bg-bg-abyss/50 border border-crimson/10 rounded-xl p-8 mb-6">
                 <p className="text-bone/30 text-sm font-mono mb-4">
                   Tab renderer will be integrated here with alphaTab.
                 </p>
                 <p className="text-bone/20 text-xs font-mono">
-                  Song ID: {selectedSong.id}
+                  Song ID: {selectedSong.songId}
                 </p>
               </div>
 
               <a
-                href={`https://www.songsterr.com/a/wsa/${selectedSong.artist.name.toLowerCase().replace(/\s+/g, '-')}-${selectedSong.title.toLowerCase().replace(/\s+/g, '-')}-tab-s${selectedSong.id}`}
+                href={`https://www.songsterr.com/a/wsa/${selectedSong.artist.toLowerCase().replace(/\s+/g, '-')}-${selectedSong.title.toLowerCase().replace(/\s+/g, '-')}-tab-s${selectedSong.songId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-crimson/10 border border-crimson/20 text-crimson text-sm font-mono hover:bg-crimson/20 transition-colors"
@@ -156,7 +156,7 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
                 <div className="space-y-2">
                   {results.map((song) => (
                     <button
-                      key={song.id}
+                      key={song.songId}
                       onClick={() => handleSelectSong(song)}
                       className="w-full text-left p-4 bg-bone/[0.03] border border-bone/[0.06] rounded-lg hover:border-crimson/30 hover:bg-crimson/5 transition-all group"
                     >
@@ -166,7 +166,7 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
                             {song.title}
                           </h4>
                           <p className="text-bone/40 text-xs font-mono mt-0.5">
-                            {song.artist.name}
+                            {song.artist}
                           </p>
                         </div>
                         <Music className="w-4 h-4 text-bone/10 group-hover:text-crimson/30 transition-colors" />

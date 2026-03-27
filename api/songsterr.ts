@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const response = await fetch(
-      `https://www.songsterr.com/a/ra/songs.json?pattern=${encodeURIComponent(q)}`
+      `https://www.songsterr.com/api/songs?pattern=${encodeURIComponent(q)}`
     );
 
     if (!response.ok) {

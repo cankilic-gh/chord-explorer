@@ -1,16 +1,24 @@
 
-export interface SongsterrArtist {
-  id: number;
+export interface SongsterrTrack {
+  instrumentId: number;
+  instrument: string;
+  views: number;
   name: string;
-  nameWithoutThePrefix: string;
+  tuning?: number[];
+  difficulty?: number;
+  hash: string;
 }
 
 export interface SongResult {
-  id: number;
+  songId: number;
+  artistId: number;
+  artist: string;
   title: string;
-  artist: SongsterrArtist;
-  chordsPresent: boolean;
-  tabTypes: string[];
+  hasChords: boolean;
+  hasPlayer: boolean;
+  tracks: SongsterrTrack[];
+  defaultTrack: number;
+  popularTrack: number;
 }
 
 export const searchSongs = async (query: string): Promise<SongResult[]> => {
