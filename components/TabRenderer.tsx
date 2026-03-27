@@ -556,7 +556,6 @@ const MeasureBlock: React.FC<{
 
   const hasTopAnnotations = pmSpans.length > 0 || letRingSpans.length > 0 || tupletSpans.length > 0;
   const hasBottomAnnotations = beamGroups.length > 0;
-  const topPad = hasTopAnnotations ? ANNOTATION_TOP_HEIGHT : 0;
   const bottomPad = hasBottomAnnotations ? ANNOTATION_BOTTOM_HEIGHT : 0;
 
   // Content area width (inside the measure, excluding padding)
@@ -568,14 +567,14 @@ const MeasureBlock: React.FC<{
       {/* Measure number */}
       <div
         className="absolute text-bone/20 font-mono select-none"
-        style={{ top: `${-16 - topPad}px`, left: '2px', fontSize: '9px', lineHeight: '1' }}
+        style={{ top: '-16px', left: '2px', fontSize: '9px', lineHeight: '1' }}
       >
         {measure.measureNumber}
       </div>
 
-      {/* Top annotations area (P.M., let ring, tuplets) */}
+      {/* Top annotations (P.M., let ring) — absolutely positioned above staff, no layout impact */}
       {hasTopAnnotations && (
-        <div className="relative" style={{ height: `${topPad}px` }}>
+        <div className="absolute left-0 right-0" style={{ top: `-${ANNOTATION_TOP_HEIGHT}px`, height: `${ANNOTATION_TOP_HEIGHT}px`, zIndex: 3 }}>
           {/* Palm mute spans */}
           {pmSpans.map((span, i) => {
             const left = contentLeft + beatPositions[span.startIdx] * contentWidth;
@@ -718,7 +717,7 @@ const MeasureBlock: React.FC<{
       {!isLast && (
         <div
           className="absolute right-0 border-r border-bone/15"
-          style={{ top: hasTopAnnotations ? `${topPad}px` : '0px', height: `${staffHeight}px` }}
+          style={{ top: 0, height: `${staffHeight}px` }}
         />
       )}
     </div>
@@ -737,15 +736,10 @@ const TabRowView: React.FC<{
 }> = memo(({ row, numStrings, stringLabels, showSignatureOnFirst }) => {
   const staffHeight = (numStrings - 1) * STRING_SPACING;
 
-  // Determine if any measure in this row has top/bottom annotations (for label alignment)
-  const hasAnyTopAnnotation = row.measures.some(m =>
-    m.beats.some(b => b.palmMute || b.letRing) ||
-    m.beats.some(b => b.tupletStart || b.tuplet),
-  );
-  const topPad = hasAnyTopAnnotation ? ANNOTATION_TOP_HEIGHT : 0;
+  // P.M. annotations are now absolute — no topPad needed
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 pt-6">
       {/* Section marker */}
       {row.marker && (
         <div className="text-crimson font-metal text-sm tracking-wide mb-1 select-none">
@@ -757,7 +751,7 @@ const TabRowView: React.FC<{
         {/* String labels column (+ time signature if present) */}
         <div
           className="flex-shrink-0 relative"
-          style={{ width: `${showSignatureOnFirst && row.measures[0]?.signature ? LABEL_WIDTH + 20 : LABEL_WIDTH}px`, height: `${staffHeight}px`, marginTop: `${topPad}px` }}
+          style={{ width: `${showSignatureOnFirst && row.measures[0]?.signature ? LABEL_WIDTH + 20 : LABEL_WIDTH}px`, height: `${staffHeight}px` }}
         >
           {stringLabels.map((label, sIdx) => (
             <div
@@ -791,7 +785,7 @@ const TabRowView: React.FC<{
         </div>
 
         {/* Measures area with continuous string lines */}
-        <div className="relative flex-1" style={{ marginTop: `${topPad}px` }}>
+        <div className="relative flex-1">
           {/* Continuous string lines spanning the full row */}
           {Array.from({ length: numStrings }, (_, sIdx) => (
             <div
