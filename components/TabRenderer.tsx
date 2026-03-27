@@ -536,7 +536,7 @@ const MeasureBlock: React.FC<{
   showSignature: boolean;
 }> = memo(({ measure, numStrings, isLast, showSignature }) => {
   const totalBeatWidth = measure.beats.reduce((sum, b) => sum + beatWidth(b.type), 0);
-  const sigPad = showSignature && measure.signature ? 24 : 0;
+  const sigPad = 0; // Time signature now rendered in label column
   const minWidth = 60;
   const measWidth = Math.max(totalBeatWidth + 16 + sigPad, minWidth);
   const staffHeight = (numStrings - 1) * STRING_SPACING;
@@ -630,9 +630,7 @@ const MeasureBlock: React.FC<{
       {/* Staff area with string lines */}
       <div className="relative" style={{ height: `${staffHeight}px` }}>
         {/* Time signature */}
-        {showSignature && measure.signature && (
-          <TimeSignature sig={measure.signature} staffHeight={staffHeight} />
-        )}
+        {/* Time signature now rendered in TabRowView label column */}
 
         {/* String lines */}
         {Array.from({ length: numStrings }, (_, sIdx) => (
@@ -763,10 +761,10 @@ const TabRowView: React.FC<{
       )}
 
       <div className="flex items-start">
-        {/* String labels column */}
+        {/* String labels column (+ time signature if present) */}
         <div
           className="flex-shrink-0 relative"
-          style={{ width: `${LABEL_WIDTH}px`, height: `${staffHeight}px`, marginTop: `${topPad}px` }}
+          style={{ width: `${showSignatureOnFirst && row.measures[0]?.signature ? LABEL_WIDTH + 20 : LABEL_WIDTH}px`, height: `${staffHeight}px`, marginTop: `${topPad}px` }}
         >
           {stringLabels.map((label, sIdx) => (
             <div
@@ -774,13 +772,29 @@ const TabRowView: React.FC<{
               className="absolute text-bone/30 font-mono text-[11px] select-none"
               style={{
                 top: `${sIdx * STRING_SPACING - 7}px`,
-                right: '4px',
+                left: '0px',
                 lineHeight: '14px',
               }}
             >
               {label}
             </div>
           ))}
+          {showSignatureOnFirst && row.measures[0]?.signature && (
+            <div
+              className="absolute flex flex-col items-center justify-center font-mono font-bold text-crimson/50 select-none"
+              style={{
+                right: '2px',
+                top: 0,
+                height: `${staffHeight}px`,
+                width: '16px',
+                lineHeight: '1',
+                fontSize: '13px',
+              }}
+            >
+              <span>{row.measures[0].signature[0]}</span>
+              <span className="mt-0.5">{row.measures[0].signature[1]}</span>
+            </div>
+          )}
         </div>
 
         {/* Opening bar line */}
