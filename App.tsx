@@ -10,8 +10,11 @@ import ProgressionBuilder from './components/ProgressionBuilder';
 import CircleOfFifths from './components/CircleOfFifths';
 import CAGEDView from './components/CAGEDView';
 import EmberParticles from './components/EmberParticles';
+import ScaleSelector from './components/ScaleSelector';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
+import { getScaleNotes } from './lib/scaleTheory';
 import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
+import { ScaleType, CHORD_TO_SCALE } from './constants/scaleData';
 import { playVoicing, ensureAudioContext } from './lib/audioEngine';
 
 const App: React.FC = () => {
@@ -23,11 +26,20 @@ const App: React.FC = () => {
   const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(0);
   const [progression, setProgression] = useState<ProgressionChord[]>([]);
   const [showRelativeChords, setShowRelativeChords] = useState(false);
+  const [scaleActive, setScaleActive] = useState(false);
+  const [scaleType, setScaleType] = useState<ScaleType>('pentatonic_minor');
+  const [activeExtensions, setActiveExtensions] = useState<string[]>([]);
 
   const selectedChord = useMemo(() => ({ root: rootNote, type: chordType }), [rootNote, chordType]);
   const chordNotes = useMemo(() => getChordNotes(rootNote, chordType), [rootNote, chordType]);
   const allVoicings = useMemo(() => getAllChordVoicings(rootNote, chordType), [rootNote, chordType]);
   const relativeChords = useMemo(() => getRelativeChords(rootNote, chordType), [rootNote, chordType]);
+
+  const scaleNotes = useMemo(() => {
+    if (!scaleActive) return undefined;
+    const chordNoteNames = chordNotes.map(n => n.note);
+    return getScaleNotes(rootNote, scaleType, activeExtensions, chordNoteNames);
+  }, [scaleActive, rootNote, scaleType, activeExtensions, chordNotes]);
 
   const currentVoicingIndex = selectedVoicingIndex >= allVoicings.length ? 0 : selectedVoicingIndex;
   const currentVoicing = allVoicings[currentVoicingIndex];
@@ -67,6 +79,16 @@ const App: React.FC = () => {
       : -1;
     setChordType(newType);
     setSelectedVoicingIndex(matchingIndex >= 0 ? matchingIndex : 0);
+    // Auto-suggest scale when chord type changes
+    const suggested = CHORD_TO_SCALE[newType];
+    if (suggested) setScaleType(suggested);
+    setActiveExtensions([]);
+  };
+
+  const handleToggleExtension = (extId: string) => {
+    setActiveExtensions(prev =>
+      prev.includes(extId) ? prev.filter(id => id !== extId) : [...prev, extId]
+    );
   };
 
   const handleSelectChord = (root: Note, type: ChordType) => {
@@ -244,7 +266,7 @@ const App: React.FC = () => {
                 <Flame className="w-3 h-3 text-ember" />
                 Piano View
               </h3>
-              <Piano notes={chordNotes} />
+              <Piano notes={chordNotes} scaleNotes={scaleNotes} />
             </motion.div>
 
             {/* Voicing Selector */}
@@ -291,13 +313,23 @@ const App: React.FC = () => {
               </div>
             </motion.div>
 
+            {/* Scale Selector */}
+            <ScaleSelector
+              active={scaleActive}
+              scaleType={scaleType}
+              activeExtensions={activeExtensions}
+              onToggle={() => setScaleActive(!scaleActive)}
+              onScaleTypeChange={setScaleType}
+              onToggleExtension={handleToggleExtension}
+            />
+
             {/* Fretboard */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Fretboard voicing={displayVoicing} chordNotes={chordNotes} isPreview={hoveredChord !== null} />
+              <Fretboard voicing={displayVoicing} chordNotes={chordNotes} scaleNotes={scaleNotes} isPreview={hoveredChord !== null} />
             </motion.div>
 
             {/* Theory Note */}

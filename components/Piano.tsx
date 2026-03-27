@@ -1,10 +1,12 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { NoteWithInterval, Note } from '../constants/musicData';
+import { ScaleNote } from '../lib/scaleTheory';
 import { playNote, ensureAudioContext } from '../lib/audioEngine';
 
 interface PianoProps {
   notes: NoteWithInterval[];
+  scaleNotes?: ScaleNote[];
 }
 
 const PIANO_KEYS = [
@@ -34,22 +36,33 @@ const INTERVAL_COLORS: Record<string, string> = {
   'Major 7th': '#f97316',
 };
 
-const Piano: React.FC<PianoProps> = ({ notes }) => {
+const SCALE_COLOR = '#DAA520';
+const EXTENSION_COLOR = '#ff6600';
+
+const Piano: React.FC<PianoProps> = ({ notes, scaleNotes }) => {
   const [pressedKey, setPressedKey] = useState<string | null>(null);
 
-  // Map note names to their interval info (for ghost dots on all matching keys)
   const noteMap = useMemo(() => {
     const map = new Map<Note, NoteWithInterval>();
     notes.forEach(n => map.set(n.note, n));
     return map;
   }, [notes]);
 
-  // Set of exact note+octave keys that are in the active voicing (full opacity)
   const activeKeys = useMemo(() => {
     const set = new Set<string>();
     notes.forEach(n => set.add(`${n.note}${n.octave}`));
     return set;
   }, [notes]);
+
+  // Scale notes by note name (only non-chord-tone scale notes get rings)
+  const scaleNoteMap = useMemo(() => {
+    if (!scaleNotes) return new Map<Note, ScaleNote>();
+    const map = new Map<Note, ScaleNote>();
+    scaleNotes.forEach(sn => {
+      if (!sn.isChordTone) map.set(sn.note, sn);
+    });
+    return map;
+  }, [scaleNotes]);
 
   const whiteKeys = useMemo(() => PIANO_KEYS.filter(k => k.type === 'white'), []);
   const blackKeys = useMemo(() => PIANO_KEYS.filter(k => k.type === 'black'), []);
@@ -66,6 +79,23 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
     setTimeout(() => setPressedKey(null), 150);
   }, []);
 
+  const renderScaleRing = (noteName: Note, isBlack: boolean) => {
+    const scaleInfo = scaleNoteMap.get(noteName);
+    if (!scaleInfo) return null;
+    const color = scaleInfo.isExtension ? EXTENSION_COLOR : SCALE_COLOR;
+    const size = isBlack ? 'w-2.5 h-2.5 md:w-3 md:h-3' : 'w-3 h-3 md:w-4 md:h-4';
+    return (
+      <div
+        className={`${size} rounded-full pointer-events-none ${isBlack ? '' : 'mb-4'}`}
+        style={{
+          border: `2px solid ${color}`,
+          opacity: 0.6,
+          backgroundColor: `${color}15`,
+        }}
+      />
+    );
+  };
+
   return (
     <div className="relative w-full h-28 md:h-36 border border-crimson/15 rounded-lg overflow-hidden shadow-[0_0_30px_rgba(220,20,60,0.1)] bg-bg-steel select-none overflow-x-auto">
       <div className="relative h-full flex min-w-[500px] md:min-w-0">
@@ -76,6 +106,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
           const isPressed = pressedKey === keyId;
           const isActive = activeKeys.has(keyId);
           const isGhost = noteInfo && !isActive;
+          const hasScaleRing = !noteInfo && scaleNoteMap.has(key.note as Note);
           return (
             <div
               key={`${key.note}${key.octave}-${index}`}
@@ -84,7 +115,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                 isPressed ? 'bg-bone/80 scale-[0.98]' : 'bg-bone/90 hover:bg-bone/95'
               }`}
             >
-              {noteInfo && (
+              {noteInfo ? (
                 <div
                   className="w-3 h-3 md:w-4 md:h-4 rounded-full pointer-events-none mb-4"
                   style={{
@@ -92,8 +123,10 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                     opacity: isGhost ? 0.3 : 1,
                     boxShadow: isGhost ? 'none' : `0 0 8px ${color}60, 0 0 16px ${color}20`,
                   }}
-                ></div>
-              )}
+                />
+              ) : hasScaleRing ? (
+                renderScaleRing(key.note as Note, false)
+              ) : null}
               <span className="absolute bottom-1 md:bottom-2 text-[10px] md:text-xs text-bg-abyss/30 font-mono font-bold pointer-events-none">{key.note === 'C' ? `${key.note}${key.octave}` : key.note}</span>
             </div>
           );
@@ -130,6 +163,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
           const isPressed = pressedKey === keyId;
           const isActive = activeKeys.has(keyId);
           const isGhost = noteInfo && !isActive;
+          const hasScaleRing = !noteInfo && scaleNoteMap.has(key.note as Note);
           return (
             <div key={`${key.note}${key.octave}-${index}`}
                  onClick={() => handleKeyPress(key.note, key.octave)}
@@ -137,7 +171,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                  className={`absolute top-0 w-[5%] h-2/3 rounded-b-md z-10 flex items-end justify-center pb-1 md:pb-2 cursor-pointer transition-all duration-75 active:scale-[0.98] border border-bg-abyss/70 shadow-lg ${
                    isPressed ? 'bg-bg-abyss scale-[0.98]' : 'bg-[#0a0a12] hover:bg-[#151520]'
                  }`}>
-              {noteInfo && (
+              {noteInfo ? (
                 <div
                   className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full pointer-events-none"
                   style={{
@@ -145,8 +179,10 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                     opacity: isGhost ? 0.3 : 1,
                     boxShadow: isGhost ? 'none' : `0 0 6px ${color}50, 0 0 12px ${color}20`,
                   }}
-                ></div>
-              )}
+                />
+              ) : hasScaleRing ? (
+                renderScaleRing(key.note as Note, true)
+              ) : null}
             </div>
           );
         })}

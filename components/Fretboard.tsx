@@ -1,10 +1,12 @@
 
 import React, { useMemo } from 'react';
 import { ChordVoicing, FretPosition, NoteWithInterval, Note } from '../constants/musicData';
+import { ScaleNote } from '../lib/scaleTheory';
 
 interface FretboardProps {
   voicing: ChordVoicing;
   chordNotes?: NoteWithInterval[];
+  scaleNotes?: ScaleNote[];
   isPreview?: boolean;
 }
 
@@ -13,7 +15,7 @@ const STRING_COUNT = 6;
 const FRET_MARKERS = [3, 5, 7, 9, 12, 15];
 
 // Standard tuning: string 0 = high E (E4), string 5 = low E (E2)
-const OPEN_STRING_MIDI = [64, 59, 55, 50, 45, 40]; // E4, B3, G3, D3, A2, E2
+const OPEN_STRING_MIDI = [64, 59, 55, 50, 45, 40];
 const NOTES: Note[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const INTERVAL_COLORS: Record<string, string> = {
@@ -31,6 +33,8 @@ const INTERVAL_COLORS: Record<string, string> = {
 };
 
 const DEFAULT_DOT_COLOR = '#888888';
+const SCALE_COLOR = '#DAA520';
+const EXTENSION_COLOR = '#ff6600';
 
 interface GhostDot {
   string: number;
@@ -39,28 +43,31 @@ interface GhostDot {
   color: string;
 }
 
-const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, isPreview = false }) => {
-  // Build a set of active positions (string+fret) for quick lookup
+interface ScaleDot {
+  string: number;
+  fret: number;
+  intervalName: string;
+  color: string;
+  isExtension: boolean;
+}
+
+const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, scaleNotes, isPreview = false }) => {
   const activePositions = useMemo(() => {
     const set = new Set<string>();
     voicing.forEach(pos => set.add(`${pos.string}-${pos.fret}`));
     return set;
   }, [voicing]);
 
-  // Calculate ghost dots: all positions on the fretboard where chord notes exist
+  // Ghost chord dots (existing behavior)
   const ghostDots = useMemo(() => {
     if (!chordNotes || chordNotes.length === 0) return [];
-
-    // Map note names to their interval info
     const noteIntervalMap = new Map<Note, string>();
     chordNotes.forEach(n => noteIntervalMap.set(n.note, n.interval));
 
     const dots: GhostDot[] = [];
     for (let string = 0; string < STRING_COUNT; string++) {
       for (let fret = 0; fret <= FRET_COUNT; fret++) {
-        // Skip positions that are already active voicing dots
         if (activePositions.has(`${string}-${fret}`)) continue;
-
         const midi = OPEN_STRING_MIDI[string] + fret;
         const noteName = NOTES[midi % 12];
         const interval = noteIntervalMap.get(noteName);
@@ -73,21 +80,54 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, isPreview = 
     return dots;
   }, [chordNotes, activePositions]);
 
+  // Scale dots (only non-chord-tone scale notes)
+  const scaleDots = useMemo(() => {
+    if (!scaleNotes || scaleNotes.length === 0) return [];
+
+    // Build set of chord note names to exclude
+    const chordNoteNames = new Set<Note>();
+    if (chordNotes) chordNotes.forEach(n => chordNoteNames.add(n.note));
+
+    const scaleNoteMap = new Map<Note, ScaleNote>();
+    scaleNotes.forEach(sn => {
+      if (!chordNoteNames.has(sn.note)) scaleNoteMap.set(sn.note, sn);
+    });
+
+    const dots: ScaleDot[] = [];
+    for (let string = 0; string < STRING_COUNT; string++) {
+      for (let fret = 0; fret <= FRET_COUNT; fret++) {
+        if (activePositions.has(`${string}-${fret}`)) continue;
+        const midi = OPEN_STRING_MIDI[string] + fret;
+        const noteName = NOTES[midi % 12];
+        const scaleInfo = scaleNoteMap.get(noteName);
+        if (scaleInfo) {
+          dots.push({
+            string,
+            fret,
+            intervalName: scaleInfo.intervalName,
+            color: scaleInfo.isExtension ? EXTENSION_COLOR : SCALE_COLOR,
+            isExtension: scaleInfo.isExtension,
+          });
+        }
+      }
+    }
+    return dots;
+  }, [scaleNotes, chordNotes, activePositions]);
+
   return (
     <div className={`bg-bg-steel border rounded-xl p-3 md:p-6 select-none transition-all duration-200 shadow-[0_0_30px_rgba(0,0,0,0.5)] ${isPreview ? 'border-crimson ring-1 ring-crimson/30' : 'border-crimson/10'}`}>
-      {/* Rosewood texture overlay */}
       <div className="relative">
         {/* Nut */}
         <div className="absolute top-0 -left-1 h-full w-1.5 md:w-2 bg-bone/50 rounded-sm"></div>
 
-        {/* Frets - metallic silver */}
+        {/* Frets */}
         <div className="flex justify-between">
           {[...Array(FRET_COUNT + 1)].map((_, i) => (
             <div key={i} className="w-px h-20 md:h-28 bg-bone/15"></div>
           ))}
         </div>
 
-        {/* Strings - metallic */}
+        {/* Strings */}
         <div className="absolute top-0 left-0 right-0 flex flex-col justify-between h-full">
           {[...Array(STRING_COUNT)].map((_, i) => (
             <div key={i} className="bg-bone/25" style={{ height: `${i*0.3 + 1}px` }}></div>
@@ -111,7 +151,28 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, isPreview = 
             ))}
         </div>
 
-        {/* Ghost Notes */}
+        {/* Scale Diamond Notes (behind everything) */}
+        <div className="absolute top-0 left-0 right-0 bottom-0">
+            {scaleDots.map((dot, i) => {
+                const top = `${((STRING_COUNT - 1 - dot.string) / (STRING_COUNT - 1)) * 100}%`;
+                const left = dot.fret === 0 ? `-1.5%` : `${((dot.fret - 0.5) / FRET_COUNT) * 100}%`;
+                return (
+                    <div
+                        key={`scale-${i}`}
+                        className="absolute w-2.5 h-2.5 md:w-3 md:h-3 transform -translate-x-1/2 -translate-y-1/2 rotate-45"
+                        style={{
+                            top,
+                            left,
+                            border: `1.5px solid ${dot.color}`,
+                            backgroundColor: `${dot.color}20`,
+                            opacity: 0.5,
+                        }}
+                    />
+                );
+            })}
+        </div>
+
+        {/* Ghost Chord Notes */}
         <div className="absolute top-0 left-0 right-0 bottom-0">
             {ghostDots.map((dot, i) => {
                 const top = `${((STRING_COUNT - 1 - dot.string) / (STRING_COUNT - 1)) * 100}%`;
@@ -131,7 +192,7 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, isPreview = 
             })}
         </div>
 
-        {/* Active Notes */}
+        {/* Active Voicing Notes */}
         <div className="absolute top-0 left-0 right-0 bottom-0">
             {voicing.map((pos, i) => {
                 const top = `${((STRING_COUNT - 1 - pos.string) / (STRING_COUNT - 1)) * 100}%`;
