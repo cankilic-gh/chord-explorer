@@ -1,8 +1,9 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { X, Search, Music, Loader2, ExternalLink } from 'lucide-react';
-import { searchSongs, SongResult } from '../lib/songsterrApi';
+import { X, Search, Music, Loader2, ExternalLink, ArrowLeft } from 'lucide-react';
+import { searchSongs, fetchTabData, SongResult, SongsterrTrack } from '../lib/songsterrApi';
+import TabRenderer, { TabData } from './TabRenderer';
 
 interface SongTabViewerProps {
   onClose: () => void;
@@ -13,6 +14,9 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
   const [results, setResults] = useState<SongResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSong, setSelectedSong] = useState<SongResult | null>(null);
+  const [tabData, setTabData] = useState<TabData | null>(null);
+  const [loadingTab, setLoadingTab] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<SongsterrTrack | null>(null);
   const [error, setError] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +55,27 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
   };
 
   const handleBack = () => {
-    setSelectedSong(null);
+    if (tabData) {
+      setTabData(null);
+      setSelectedTrack(null);
+    } else {
+      setSelectedSong(null);
+    }
+  };
+
+  const handleLoadTrack = async (song: SongResult, track: SongsterrTrack, trackIndex: number) => {
+    setLoadingTab(true);
+    setSelectedTrack(track);
+    setError('');
+    try {
+      const data = await fetchTabData(song.songId, trackIndex);
+      setTabData(data as TabData);
+    } catch {
+      setError('Failed to load tab. Try another track.');
+      setTabData(null);
+    } finally {
+      setLoadingTab(false);
+    }
   };
 
   return (
@@ -76,16 +100,19 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
               {selectedSong ? selectedSong.title : 'Song Tabs'}
             </h2>
             {selectedSong && (
-              <span className="text-sm text-bone/40 font-mono">{selectedSong.artist}</span>
+              <span className="text-sm text-bone/40 font-mono">
+                {selectedSong.artist}{selectedTrack ? ` — ${selectedTrack.instrument}` : ''}
+              </span>
             )}
           </div>
           <div className="flex items-center gap-2">
             {selectedSong && (
               <button
                 onClick={handleBack}
-                className="px-3 py-1.5 rounded-md text-xs font-mono text-bone/50 hover:text-bone hover:bg-bone/10 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-mono text-bone/50 hover:text-bone hover:bg-bone/10 transition-colors"
               >
-                Back to Search
+                <ArrowLeft className="w-3 h-3" />
+                {tabData ? 'Tracks' : 'Search'}
               </button>
             )}
             <button
@@ -98,7 +125,20 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
         </div>
 
         {/* Content */}
-        {selectedSong ? (
+        {selectedSong && tabData ? (
+          // Tab View
+          <div className="flex-1 overflow-y-auto p-6" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(220,20,60,0.3) transparent' }}>
+            <TabRenderer data={tabData} />
+          </div>
+        ) : selectedSong && loadingTab ? (
+          // Loading tab
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 text-crimson animate-spin mx-auto mb-3" />
+              <p className="text-bone/40 text-sm font-mono">Loading tab...</p>
+            </div>
+          </div>
+        ) : selectedSong ? (
           // Song Detail + Track List
           <div className="flex-1 overflow-y-auto p-6" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(220,20,60,0.3) transparent' }}>
             <div className="w-full max-w-2xl mx-auto">
@@ -113,13 +153,13 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
                 {selectedSong.tracks
                   .filter(t => t.difficulty !== undefined)
                   .sort((a, b) => (b.views || 0) - (a.views || 0))
-                  .map((track, i) => (
-                    <a
-                      key={i}
-                      href={`https://www.songsterr.com/a/wsa/${selectedSong.artist.toLowerCase().replace(/\s+/g, '-')}-${selectedSong.title.toLowerCase().replace(/\s+/g, '-')}-tab-s${selectedSong.songId}t${selectedSong.tracks.indexOf(track)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between p-3 bg-bone/[0.03] border border-bone/[0.06] rounded-lg hover:border-crimson/30 hover:bg-crimson/5 transition-all group"
+                  .map((track) => {
+                    const trackIndex = selectedSong.tracks.indexOf(track);
+                    return (
+                    <button
+                      key={trackIndex}
+                      onClick={() => handleLoadTrack(selectedSong, track, trackIndex)}
+                      className="w-full text-left flex items-center justify-between p-3 bg-bone/[0.03] border border-bone/[0.06] rounded-lg hover:border-crimson/30 hover:bg-crimson/5 transition-all group"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold ${
@@ -146,10 +186,11 @@ const SongTabViewer: React.FC<SongTabViewerProps> = ({ onClose }) => {
                         <span className="text-bone/20 text-xs font-mono w-16 text-right">
                           {track.views ? `${(track.views / 1000).toFixed(0)}k` : ''}
                         </span>
-                        <ExternalLink className="w-3.5 h-3.5 text-bone/10 group-hover:text-crimson/40 transition-colors" />
+                        <Music className="w-3.5 h-3.5 text-bone/10 group-hover:text-crimson/40 transition-colors" />
                       </div>
-                    </a>
-                  ))}
+                    </button>
+                    );
+                  })}
               </div>
 
               <div className="text-center">

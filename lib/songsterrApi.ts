@@ -21,6 +21,15 @@ export interface SongResult {
   popularTrack: number;
 }
 
+export interface TabData {
+  name: string;
+  measures: unknown[];
+  tuning: number[];
+  strings: number;
+  instrument: string;
+  automations?: { tempo?: Array<{ value: number; position: number }> };
+}
+
 export const searchSongs = async (query: string): Promise<SongResult[]> => {
   if (!query.trim()) return [];
 
@@ -29,4 +38,10 @@ export const searchSongs = async (query: string): Promise<SongResult[]> => {
 
   const data = await res.json();
   return data as SongResult[];
+};
+
+export const fetchTabData = async (songId: number, partId: number): Promise<TabData> => {
+  const res = await fetch(`/api/tab?songId=${songId}&partId=${partId}`);
+  if (!res.ok) throw new Error('Failed to load tab');
+  return res.json();
 };
