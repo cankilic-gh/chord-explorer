@@ -297,7 +297,7 @@ const App: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Fretboard voicing={displayVoicing} isPreview={hoveredChord !== null} />
+              <Fretboard voicing={displayVoicing} chordNotes={chordNotes} isPreview={hoveredChord !== null} />
             </motion.div>
 
             {/* Theory Note */}

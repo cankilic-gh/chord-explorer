@@ -1,15 +1,20 @@
 
-import React from 'react';
-import { ChordVoicing, FretPosition } from '../constants/musicData';
+import React, { useMemo } from 'react';
+import { ChordVoicing, FretPosition, NoteWithInterval, Note } from '../constants/musicData';
 
 interface FretboardProps {
   voicing: ChordVoicing;
+  chordNotes?: NoteWithInterval[];
   isPreview?: boolean;
 }
 
 const FRET_COUNT = 15;
 const STRING_COUNT = 6;
 const FRET_MARKERS = [3, 5, 7, 9, 12, 15];
+
+// Standard tuning: string 0 = high E (E4), string 5 = low E (E2)
+const OPEN_STRING_MIDI = [64, 59, 55, 50, 45, 40]; // E4, B3, G3, D3, A2, E2
+const NOTES: Note[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 const INTERVAL_COLORS: Record<string, string> = {
   'Root': '#ef4444',
@@ -27,7 +32,47 @@ const INTERVAL_COLORS: Record<string, string> = {
 
 const DEFAULT_DOT_COLOR = '#888888';
 
-const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => {
+interface GhostDot {
+  string: number;
+  fret: number;
+  interval: string;
+  color: string;
+}
+
+const Fretboard: React.FC<FretboardProps> = ({ voicing, chordNotes, isPreview = false }) => {
+  // Build a set of active positions (string+fret) for quick lookup
+  const activePositions = useMemo(() => {
+    const set = new Set<string>();
+    voicing.forEach(pos => set.add(`${pos.string}-${pos.fret}`));
+    return set;
+  }, [voicing]);
+
+  // Calculate ghost dots: all positions on the fretboard where chord notes exist
+  const ghostDots = useMemo(() => {
+    if (!chordNotes || chordNotes.length === 0) return [];
+
+    // Map note names to their interval info
+    const noteIntervalMap = new Map<Note, string>();
+    chordNotes.forEach(n => noteIntervalMap.set(n.note, n.interval));
+
+    const dots: GhostDot[] = [];
+    for (let string = 0; string < STRING_COUNT; string++) {
+      for (let fret = 0; fret <= FRET_COUNT; fret++) {
+        // Skip positions that are already active voicing dots
+        if (activePositions.has(`${string}-${fret}`)) continue;
+
+        const midi = OPEN_STRING_MIDI[string] + fret;
+        const noteName = NOTES[midi % 12];
+        const interval = noteIntervalMap.get(noteName);
+        if (interval) {
+          const color = INTERVAL_COLORS[interval] || DEFAULT_DOT_COLOR;
+          dots.push({ string, fret, interval, color });
+        }
+      }
+    }
+    return dots;
+  }, [chordNotes, activePositions]);
+
   return (
     <div className={`bg-bg-steel border rounded-xl p-3 md:p-6 select-none transition-all duration-200 shadow-[0_0_30px_rgba(0,0,0,0.5)] ${isPreview ? 'border-crimson ring-1 ring-crimson/30' : 'border-crimson/10'}`}>
       {/* Rosewood texture overlay */}
@@ -66,7 +111,27 @@ const Fretboard: React.FC<FretboardProps> = ({ voicing, isPreview = false }) => 
             ))}
         </div>
 
-        {/* Notes */}
+        {/* Ghost Notes */}
+        <div className="absolute top-0 left-0 right-0 bottom-0">
+            {ghostDots.map((dot, i) => {
+                const top = `${((STRING_COUNT - 1 - dot.string) / (STRING_COUNT - 1)) * 100}%`;
+                const left = dot.fret === 0 ? `-1.5%` : `${((dot.fret - 0.5) / FRET_COUNT) * 100}%`;
+                return (
+                    <div
+                        key={`ghost-${i}`}
+                        className="absolute w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                        style={{
+                            top,
+                            left,
+                            backgroundColor: dot.color,
+                            opacity: 0.2,
+                        }}
+                    />
+                );
+            })}
+        </div>
+
+        {/* Active Notes */}
         <div className="absolute top-0 left-0 right-0 bottom-0">
             {voicing.map((pos, i) => {
                 const top = `${((STRING_COUNT - 1 - pos.string) / (STRING_COUNT - 1)) * 100}%`;

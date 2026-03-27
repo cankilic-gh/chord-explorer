@@ -89,7 +89,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                   className="w-3 h-3 md:w-4 md:h-4 rounded-full pointer-events-none mb-4"
                   style={{
                     backgroundColor: color,
-                    opacity: isGhost ? 0.15 : 1,
+                    opacity: isGhost ? 0.3 : 1,
                     boxShadow: isGhost ? 'none' : `0 0 8px ${color}60, 0 0 16px ${color}20`,
                   }}
                 ></div>
@@ -142,7 +142,7 @@ const Piano: React.FC<PianoProps> = ({ notes }) => {
                   className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full pointer-events-none"
                   style={{
                     backgroundColor: color,
-                    opacity: isGhost ? 0.15 : 1,
+                    opacity: isGhost ? 0.3 : 1,
                     boxShadow: isGhost ? 'none' : `0 0 6px ${color}50, 0 0 12px ${color}20`,
                   }}
                 ></div>
