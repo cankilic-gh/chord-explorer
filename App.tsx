@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, LayoutGrid, Circle as CircleIcon, Volume2, Info, Skull, Flame } from 'lucide-react';
+import { Play, LayoutGrid, Circle as CircleIcon, Volume2, Info, Skull, Flame, Music } from 'lucide-react';
 import ChordSelector from './components/ChordSelector';
 import Piano from './components/Piano';
 import Fretboard from './components/Fretboard';
@@ -11,6 +11,7 @@ import CircleOfFifths from './components/CircleOfFifths';
 import CAGEDView from './components/CAGEDView';
 import EmberParticles from './components/EmberParticles';
 import ScaleSelector from './components/ScaleSelector';
+import SongTabViewer from './components/SongTabViewer';
 import { getChordNotes, getAllChordVoicings, getRelativeChords, getRomanNumeral } from './lib/musicTheory';
 import { getScaleNotes } from './lib/scaleTheory';
 import { NOTES, CHORD_TYPES, ChordType, Note, Chord as AppChord, ProgressionChord } from './constants/musicData';
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [hoveredChord, setHoveredChord] = useState<AppChord | null>(null);
   const [showCircleOfFifths, setShowCircleOfFifths] = useState(false);
   const [showCAGED, setShowCAGED] = useState(false);
+  const [showSongTabs, setShowSongTabs] = useState(false);
   const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(0);
   const [progression, setProgression] = useState<ProgressionChord[]>([]);
   const [showRelativeChords, setShowRelativeChords] = useState(false);
@@ -190,6 +192,15 @@ const App: React.FC = () => {
           >
             <CircleIcon className="w-4 h-4 text-purple-dark" />
             <span className="hidden md:inline">Circle of Fifths</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowSongTabs(true)}
+            className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-md bg-ember/10 hover:bg-ember/20 border border-ember/30 hover:border-ember/50 transition-colors text-sm font-metal font-semibold text-bone/80 hover:text-bone"
+          >
+            <Music className="w-4 h-4 text-ember" />
+            <span className="hidden md:inline">Song Tabs</span>
           </motion.button>
         </div>
       </header>
@@ -422,6 +433,12 @@ const App: React.FC = () => {
             }}
             onClose={() => setShowCAGED(false)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSongTabs && (
+          <SongTabViewer onClose={() => setShowSongTabs(false)} />
         )}
       </AnimatePresence>
     </div>
