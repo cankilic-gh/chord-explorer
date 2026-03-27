@@ -632,14 +632,7 @@ const MeasureBlock: React.FC<{
         {/* Time signature */}
         {/* Time signature now rendered in TabRowView label column */}
 
-        {/* String lines */}
-        {Array.from({ length: numStrings }, (_, sIdx) => (
-          <div
-            key={sIdx}
-            className="absolute w-full border-b border-bone/20"
-            style={{ top: `${sIdx * STRING_SPACING}px`, left: 0 }}
-          />
-        ))}
+        {/* String lines rendered at row level for alignment — see TabRowView */}
 
         {/* Beats */}
         <div
@@ -797,30 +790,42 @@ const TabRowView: React.FC<{
           )}
         </div>
 
-        {/* Opening bar line */}
-        <div
-          className="flex-shrink-0 border-r border-bone/30"
-          style={{ height: `${staffHeight}px`, marginTop: `${topPad}px` }}
-        />
-
-        {/* Measures */}
-        <div className="flex items-start">
-          {row.measures.map((measure, mIdx) => (
-            <MeasureBlock
-              key={measure.measureNumber}
-              measure={measure}
-              numStrings={numStrings}
-              isLast={mIdx === row.measures.length - 1}
-              showSignature={mIdx === 0 && showSignatureOnFirst}
+        {/* Measures area with continuous string lines */}
+        <div className="relative flex-1" style={{ marginTop: `${topPad}px` }}>
+          {/* Continuous string lines spanning the full row */}
+          {Array.from({ length: numStrings }, (_, sIdx) => (
+            <div
+              key={`line-${sIdx}`}
+              className="absolute w-full border-b border-bone/20"
+              style={{ top: `${sIdx * STRING_SPACING}px`, left: 0, zIndex: 0 }}
             />
           ))}
-        </div>
 
-        {/* Closing bar line */}
-        <div
-          className="flex-shrink-0 border-r border-bone/30"
-          style={{ height: `${staffHeight}px`, marginTop: `${topPad}px` }}
-        />
+          {/* Opening bar line */}
+          <div
+            className="absolute left-0 top-0 border-l border-bone/30"
+            style={{ height: `${staffHeight}px`, zIndex: 1 }}
+          />
+
+          {/* Measures (fret numbers, annotations, bar lines — no string lines) */}
+          <div className="relative flex items-start" style={{ zIndex: 1 }}>
+            {row.measures.map((measure, mIdx) => (
+              <MeasureBlock
+                key={measure.measureNumber}
+                measure={measure}
+                numStrings={numStrings}
+                isLast={mIdx === row.measures.length - 1}
+                showSignature={mIdx === 0 && showSignatureOnFirst}
+              />
+            ))}
+          </div>
+
+          {/* Closing bar line */}
+          <div
+            className="absolute right-0 top-0 border-r border-bone/30"
+            style={{ height: `${staffHeight}px`, zIndex: 1 }}
+          />
+        </div>
       </div>
     </div>
   );
