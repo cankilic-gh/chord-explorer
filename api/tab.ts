@@ -9,48 +9,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Step 1: Get latest published revision
-    const metaRes = await fetch(
-      `https://www.songsterr.com/api/meta/${songId}/revisions`
-    );
-    if (!metaRes.ok) {
-      return res.status(404).json({ error: 'Song not found' });
-    }
-    const revisions = await metaRes.json();
-    const revision = revisions.find((r: { isOnModeration: boolean }) => !r.isOnModeration);
-    if (!revision) {
-      return res.status(404).json({ error: 'No published revision found' });
-    }
-    const revId = revision.revisionId;
-
-    // Step 2: Get image hash from SSR page
+    // Fetch SSR page to get the active revisionId and image hash
     const pageRes = await fetch(
       `https://www.songsterr.com/a/wa/song?id=${songId}`,
       { redirect: 'follow' }
     );
     const html = await pageRes.text();
 
-    let image = '';
-    const match = html.match(/"image"\s*:\s*"([^"]+)"/);
-    if (match) {
-      image = match[1];
-    }
-
-    if (!image) {
+    // Extract image hash from SSR data
+    const imageMatch = html.match(/"image"\s*:\s*"([^"]+)"/);
+    if (!imageMatch) {
       return res.status(404).json({ error: 'Could not resolve tab image hash' });
     }
+    const image = imageMatch[1];
 
-    // Step 3: Fetch tab data from CDN
+    // Extract the active revisionId from SSR meta.current (not from revisions API)
+    const revMatch = html.match(/"meta"\s*:\s*\{[^}]*"current"\s*:\s*\{[^}]*"revisionId"\s*:\s*(\d+)/);
+    if (!revMatch) {
+      return res.status(404).json({ error: 'Could not resolve revision ID' });
+    }
+    const revId = revMatch[1];
+
+    // Fetch tab data from CDN
     const url = `https://d3d3l6a6rcgkaf.cloudfront.net/${songId}/${revId}/${image}/${partId}.json`;
     const tabRes = await fetch(url);
 
     if (!tabRes.ok) {
-      return res.status(tabRes.status).json({ error: 'Tab data not available', url });
+      return res.status(tabRes.status).json({ error: 'Tab data not available' });
     }
 
     const buffer = Buffer.from(await tabRes.arrayBuffer());
 
-    // Decompress gzipped response
     let jsonStr: string;
     try {
       jsonStr = gunzipSync(buffer).toString('utf-8');
