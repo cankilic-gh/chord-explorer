@@ -246,3 +246,4 @@ MIT License - feel free to use and modify.
 - [ ] Save/load progressions
 
 <!-- post-migration auto-deploy check: 2026-05-17T11:52:08Z -->
+<!-- auto-deploy retest after relink: 15:22:35Z -->
